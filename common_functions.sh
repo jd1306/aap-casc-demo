@@ -16,23 +16,37 @@ initialize_and_validate() {
     shift # Remove script_type from the arguments list
 
     # --- Initial Argument Validation ---
-    if [[ $# -lt 1 ]]; then
-        echo "Error: Missing environment argument."
+    if [[ $# -lt 2 ]]; then
+        echo "Error: Missing organization or environment argument."
         echo ""
         usage # Calls the usage() function defined in the parent script (no args)
     fi
 
-    env=$1
-    local base_dir="$parent_dir/aap_vars"
-    local env_dir="$base_dir/$env"
+    org=$1
+    env=$2
+    local orgs_vars_dir="$parent_dir/orgs_vars"
+    local org_base_dir="$orgs_vars_dir/$org"
+    local env_dir="$org_base_dir/$env"
+
+    # --- Validate Organization ---
+    if [[ ! -d "$org_base_dir" ]]; then
+        echo "Error: Organization '$org' not found or is invalid."
+        echo ""
+        if [[ -d "$orgs_vars_dir" ]]; then
+            local available_orgs
+            available_orgs=$(find "$orgs_vars_dir" -mindepth 1 -maxdepth 1 -type d -printf "%f|" | sed 's/|$//')
+            echo "Available organizations: {$available_orgs}"
+        fi
+        exit 1
+    fi
 
     # --- Validate Environment ---
     if [[ ! -d "$env_dir" ]]; then
-        echo "Error: Environment '$env' not found or is invalid."
+        echo "Error: Environment '$env' not found or is invalid in organization '$org'."
         echo ""
         local available_envs
-        available_envs=$(find "$base_dir" -mindepth 1 -maxdepth 1 -type d -not -name "common" -printf "%f|" | sed 's/|$//')
-        echo "Available environments: {$available_envs}"
+        available_envs=$(find "$org_base_dir" -mindepth 1 -maxdepth 1 -type d -not -name "common" -printf "%f|" | sed 's/|$//')
+        echo "Available environments in '$org': {$available_envs}"
         exit 1
     fi
 
@@ -48,13 +62,13 @@ initialize_and_validate() {
     source "$env_vars_file" # This loads $CASC_AAP_VERSION
 
     # --- Argument Parsing ---
-    shift 1 # Remove env from the argument list
+    shift 2 # Remove org and env from the argument list
     tags=""
     local all=false
 
     if [[ -z "${1:-}" ]]; then
         echo "Error: Missing option [-a|--all] or [-t|--tags]."
-        usage "$env" # Call usage with the env to show tags
+        usage "$org" "$env" # Call usage with the org and env to show tags
     fi
 
     case $1 in
@@ -66,12 +80,12 @@ initialize_and_validate() {
                 tags="$2"
             else
                 echo "Error: --tags requires an argument."
-                usage "$env" # Call usage with the env to show tags
+                usage "$org" "$env" # Call usage with the org and env to show tags
             fi
             ;;
         *)
             echo "Unknown option: $1"
-            usage "$env" # Call usage with the env to show tags
+            usage "$org" "$env" # Call usage with the org and env to show tags
             ;;
     esac
 
@@ -126,7 +140,7 @@ initialize_and_validate() {
             echo "Error: Invalid tag(s) provided: ${invalid_tags[*]}"
             echo "Please use one of the supported tags for AAP version $CASC_AAP_VERSION."
             echo ""
-            usage "$env" # Call usage with the env to show tags
+            usage "$org" "$env" # Call usage with the org and env to show tags
         fi
         echo "✅ Tags validated successfully."
     fi
