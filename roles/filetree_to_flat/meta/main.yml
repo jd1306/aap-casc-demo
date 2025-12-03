@@ -1,7 +1,9 @@
 ---
 galaxy_info:
   author: Lenny Shirley II
-  description: Converts a structured file tree directory of Ansible variable files back into a single "flat" variable in memory. It can also optionally save these merged variables back to individual flat files.
+  description: >-
+    Converts a structured file tree directory of Ansible variable files back into a single "flat" variable in memory.
+    It can also optionally save these merged variables back to individual flat files.
   company: Red Hat
   # issue_tracker_url: http://example.com/issue/tracker
   license: GPL-3.0-or-later

@@ -1,0 +1,30 @@
+---
+- name: Merge FileTree into Flattened Variables
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # 1. Path to your 'imports' directory that contains
+    #    all the .d folders
+    #    Note: Update with your organization name (e.g., "OCP0Lab", "TAMLab", "HomeLab")
+    filetree_to_flat_base_path: "orgs_vars/<org_name>/<env_name>/imports2"
+
+    # 2. Set the boolean to true
+    filetree_to_flat_save_files: true
+
+    # 3. Provide the new output directory
+    #    Note: Update with your organization name (e.g., "OCP0Lab", "TAMLab", "HomeLab")
+    filetree_to_flat_output_path: "orgs_vars/<org_name>/<env_name>/exports_merged"
+
+  roles:
+    - role: filetree_to_flat
+
+  post_tasks:
+    - name: DEBUG - Show merged variables
+      ansible.builtin.debug:
+        msg:
+          - "controller_projects has {{ controller_projects | length }} items."
+          - "aap_organizations has {{ aap_organizations | length }} items."
+          # - "controller_settings is: {{ controller_settings | default('NOT FOUND') }}"
+      when: controller_projects is defined or aap_organizations is defined

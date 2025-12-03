@@ -2,10 +2,11 @@
 # This file is called by process_directory.yml
 # It expects 'item' (from the loop) and 'target_var_name' (from vars)
 
-- name: "Reading file: {{ item.path }} (as raw text)"
+- name: "{{ __task_name }}"
   ansible.builtin.set_fact:
     raw_content: "{{ lookup('pipe', 'cat ' + (item.path | quote)) }}"
   vars:
+    __task_name: "Reading file: {{ item.path }} (as raw text)"
     # This prevents Ansible from trying to template the lookup itself
     ansible_jinja2_extensions: "jinja2.ext.do"
 
@@ -30,7 +31,7 @@
 - name: "Append loaded DICTIONARY content to main variable"
   ansible.builtin.set_fact:
     "{{ target_var_name }}": >-
-      {{ vars[target_var_name] + [ loaded_file_content[target_var_name] ] }}
+      {{ vars[target_var_name] + [loaded_file_content[target_var_name]] }}
   when:
     - loaded_file_content is defined
     - loaded_file_content[target_var_name] is defined

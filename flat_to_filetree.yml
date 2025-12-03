@@ -1,0 +1,17 @@
+---
+- name: Split Flattened Ansible Variable Files into FileTree
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # 1. Path to search for your source files
+    #    Note: Update with your organization name (e.g., "OCP0Lab", "TAMLab", "HomeLab")
+    flat_to_filetree_source_path: "orgs_vars/<org_name>/<env_name>/exports/<export_folder>"
+
+    # 2. Path to create the new split files
+    #    Note: Update with your organization name (e.g., "OCP0Lab", "TAMLab", "HomeLab")
+    flat_to_filetree_output_path: "orgs_vars/<org_name>/<env_name>/imports2"
+
+  roles:
+    - role: flat_to_filetree
