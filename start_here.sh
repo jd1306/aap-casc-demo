@@ -3,6 +3,7 @@
 # Get the directory of the script
 parent_dir=$(dirname "$(readlink -f "$0")")
 script_vars_dir="$parent_dir/script_vars"
+full_aap_folders=()
 
 # --- Function to display usage ---
 usage() {
@@ -72,6 +73,17 @@ ensure_folders_exist() {
     done
 }
 
+build_full_aap_folders() {
+    local script_vars_file="$script_vars_dir/$casc_aap_version/vars.env"
+    source "$script_vars_file"
+    for folder in "${aap_folders_needed[@]}"; do
+        full_aap_folders+=("$relative_env_dir/imports/$folder")
+    done
+    for folder in "${aap_folders_needed[@]}"; do
+        full_aap_folders+=("$base_dir/common/$folder")
+    done
+}
+
 
 # --- Initial Argument Validation ---
 if [[ $# -lt 1 ]]; then
@@ -116,6 +128,10 @@ if [[ -d "$env_dir" && \
       -f "$vars_file" && \
       -f "$vault_file" ]]; then
     
+    source "$env_vars_file"
+    build_full_aap_folders
+    ensure_folders_exist "${full_aap_folders[@]}"
+    
     echo "Error: Environment '$env' already exists and appears complete."
     echo "If you want to edit the existing vault, use: ./vault-edit.sh $env"
     exit 1
@@ -150,15 +166,7 @@ else
 fi
 
 # --- Component 3: AAP Directories ---
-script_vars_file="$script_vars_dir/$casc_aap_version/vars.env"
-source "$script_vars_file"
-full_aap_folders=()
-for folder in "${aap_folders_needed[@]}"; do
-    full_aap_folders+=("$relative_env_dir/imports/$folder")
-done
-for folder in "${aap_folders_needed[@]}"; do
-    full_aap_folders+=("$base_dir/common/$folder")
-done
+build_full_aap_folders
 ensure_folders_exist "${full_aap_folders[@]}"
 
 # --- Component 2: vars.yml (Ansible Vars) ---
