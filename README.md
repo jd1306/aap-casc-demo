@@ -57,7 +57,7 @@ If you're new to CaSC, here's why it's so powerful:
 This tool provides two main wrapper scripts, `export.sh` and `import.sh`, which are the easiest way to get started.
 
 These scripts are user-friendly wrappers for the underlying Ansible playbooks (`export.yml` and `import.yml`). They automatically:
-1.  Read your environment's **AAP version** from `aap_vars/<env_name>/vars.env`.
+1.  Read your environment's **AAP version** from `orgs_vars/<org_name>/<env_name>/vars.env`.
 2.  Read your environment's credentials from an encrypted Ansible Vault.
 3.  Validate your command-line tags against the version-specific list.
 4.  Run the correct Ansible playbook using **`ansible-navigator`**.
@@ -85,19 +85,21 @@ Before you begin, you **must** have the following tools installed on your local 
     ```
 
 2.  **Run the Initialization Script:**
-    This tool now includes an interactive script to get you started. Run the `start_here.sh` script and give it a name for your new environment (e.g., `my_prod`).
+    This tool now includes an interactive script to get you started. Run the `start_here.sh` script and provide an organization name and environment name (e.g., `OCP0Lab` and `my_prod`).
 
     ```bash
     chmod +x start_here.sh
-    ./start_here.sh my_prod
+    ./start_here.sh OCP0Lab my_prod
     ```
 
 3.  **What This Script Does:**
     The `start_here.sh` script will automatically:
+    * **Create the organization directory** if it doesn't exist (e.g., `orgs_vars/OCP0Lab/`).
     * **Ask you to select an AAP version** (e.g., 2.6, 2.5) for this environment.
-    * Create the full directory structure: `aap_vars/my_prod/imports` and `aap_vars/my_prod/exports`.
-    * Save your version choice to `aap_vars/my_prod/vars.env`.
-    * Copy the `templates/vault.yml` to `aap_vars/my_prod/vault.yml`.
+    * Create the full directory structure: `orgs_vars/OCP0Lab/my_prod/imports` and `orgs_vars/OCP0Lab/my_prod/exports`.
+    * Create the common directory: `orgs_vars/OCP0Lab/common/` for shared configurations.
+    * Save your version choice to `orgs_vars/OCP0Lab/my_prod/vars.env`.
+    * Copy the `templates/vault.yml` to `orgs_vars/OCP0Lab/my_prod/vault.yml`.
     * Encrypt the new `vault.yml` using `ansible-vault`. (It will ask you to create a new vault password.)
     * Open the new `vault.yml` in your editor so you can add your AAP hostname and credentials.
 
@@ -106,7 +108,7 @@ Before you begin, you **must** have the following tools installed on your local 
 
     ```bash
     chmod +x vault-edit.sh
-    ./vault-edit.sh my_prod
+    ./vault-edit.sh OCP0Lab my_prod
     ```
 
 ## 👟 Step 2: Usage / Examples
@@ -121,8 +123,9 @@ chmod +x export.sh import.sh
 
 This command reads from your AAP instance and saves the files locally. **Note that you no longer need to provide the version number.**
 
-* **Command:** `./export.sh <environment_name> [options]`
+* **Command:** `./export.sh <org_name> <environment_name> [options]`
 * **Arguments:**
+    * `<org_name>`: The name of your organization (e.g., `OCP0Lab`, `TAMLab`, `HomeLab`).
     * `<environment_name>`: The name of your config directory (e.g., `my_prod`).
     * `[options]`:
         * `-a` or `--all`: Export *all* supported configurations.
@@ -130,13 +133,13 @@ This command reads from your AAP instance and saves the files locally. **Note th
 
 **Example: Export only Projects and Credentials**
 ```bash
-./export.sh my_prod -t "controller_projects,controller_credentials"
+./export.sh OCP0Lab my_prod -t "controller_projects,controller_credentials"
 ```
 * **What this does:**
-    1.  Reads `aap_vars/my_prod/vars.env` to find this env is for AAP 2.6 (or whichever version you selected).
-    2.  Reads connection details from your encrypted `aap_vars/my_prod/vault.yml`.
+    1.  Reads `orgs_vars/OCP0Lab/my_prod/vars.env` to find this env is for AAP 2.6 (or whichever version you selected).
+    2.  Reads connection details from your encrypted `orgs_vars/OCP0Lab/my_prod/vault.yml`.
     3.  Connects to your AAP 2.6 instance.
-    4.  Saves the resulting YAML files into a new, timestamped directory like `aap_vars/my_prod/exports/aapexport_20251028_193000/`.
+    4.  Saves the resulting YAML files into a new, timestamped directory like `orgs_vars/OCP0Lab/my_prod/exports/my_prod_export_20251028_193000/`.
 
 ---
 
@@ -144,11 +147,12 @@ This command reads from your AAP instance and saves the files locally. **Note th
 
 This command reads from your local files and configures your AAP instance.
 
-* **Command:** `./import.sh <environment_name> [options]`
+* **Command:** `./import.sh <org_name> <environment_name> [options]`
 * **Arguments:**
+    * `<org_name>`: The name of your organization (e.g., `OCP0Lab`, `TAMLab`, `HomeLab`).
     * `<environment_name>`: The name of your config directory (e.g., `my_prod`).
     * `[options]`:
-        * `-a` or `--all`: Import *all* configurations from the `imports` directory.
+        * `-a` or `--all`: Import *all* configurations from the `imports` directory and `common` directory.
         * `-t "tag1,tag2"`: Import *only* the specific items you list.
 
 **Example: Import only Projects**
@@ -156,27 +160,27 @@ This command reads from your local files and configures your AAP instance.
 1.  **First, copy your config files:** Before you can import, you must place your configuration files into the `imports` directory for your environment.
     ```bash
     # (Assuming you already exported)
-    # cp aap_vars/my_prod/exports/aapexport.../controller_projects.yml aap_vars/my_prod/imports/
+    # cp orgs_vars/OCP0Lab/my_prod/exports/my_prod_export.../controller_projects.yml orgs_vars/OCP0Lab/my_prod/imports/
     ```
 
 2.  **Run the import script:**
     ```bash
-    ./import.sh my_prod -t "controller_projects"
+    ./import.sh OCP0Lab my_prod -t "controller_projects"
     ```
 * **What this does:**
-    1.  Reads `aap_vars/my_prod/vars.env` to get the version.
-    2.  Reads connection details from your encrypted `aap_vars/my_prod/vault.yml`.
+    1.  Reads `orgs_vars/OCP0Lab/my_prod/vars.env` to get the version.
+    2.  Reads connection details from your encrypted `orgs_vars/OCP0Lab/my_prod/vault.yml`.
     3.  Connects to your AAP instance.
-    4.  Applies *only* the configurations found that match the `controller_projects` tag.
+    4.  Applies *only* the configurations found that match the `controller_projects` tag from both the environment's `imports` directory and the organization's `common` directory.
 
 > **💡 How to find all available tags?**
 >
 > The available tags are different for each AAP version and are now defined in the `script_vars/` directory.
 >
-> To see a full list of supported tags, run the script with just an environment name and no options (like `-a` or `-t`).
+> To see a full list of supported tags, run the script with just an organization name and environment name and no options (like `-a` or `-t`).
 >
 > ```bash
-> ./export.sh my_prod
+> ./export.sh OCP0Lab my_prod
 > ```
 >
 > This will show the `Usage:` help text, which dynamically lists all valid tags for the version associated with `my_prod`.

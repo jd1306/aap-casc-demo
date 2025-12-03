@@ -23,11 +23,11 @@ All variables are set in the playbook that calls this role or in `defaults/main.
 
 * `flat_to_filetree_source_path`
     * **Required:** The full or relative path to the directory containing the flat `*.yml` / `*.yaml` files you want to process.
-    * Example: `"aap_vars/AAP26/exports/my_export"`
+    * Example: `"orgs_vars/OCP0Lab/AAP26/exports/my_export"`
 
 * `flat_to_filetree_output_path`
     * **Required:** The path to the new directory where the file tree will be created.
-    * Example: `"aap_vars/AAP26/imports"`
+    * Example: `"orgs_vars/OCP0Lab/AAP26/imports"`
 
 * `flat_to_filetree_var_to_folder_map`
     * **Required:** A dictionary mapping the top-level YAML variable (e.g., `controller_credentials`) to the name of the root folder you want to create for it.
@@ -123,10 +123,10 @@ This is an example of how this role is called.
 
   vars:
     # 1. Path to search for your source files
-    flat_to_filetree_source_path: "aap_vars/AAP26/exports/aap26_export_20251031_161923"
+    flat_to_filetree_source_path: "orgs_vars/OCP0Lab/AAP26/exports/aap26_export_20251031_161923"
 
     # 2. Path to create the new split files
-    flat_to_filetree_output_path: "aap_vars/AAP26/imports"
+    flat_to_filetree_output_path: "orgs_vars/OCP0Lab/AAP26/imports"
 
     # 3. Mappings are assumed to be in roles/flat_to_filetree/defaults/main.yml
 

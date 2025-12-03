@@ -27,7 +27,7 @@ All variables are set in the playbook that calls this role or in `defaults/main.
 
 * `filetree_to_flat_base_path`
     * **Required:** The full or relative path to the *parent* directory containing all the file tree folders (e.g., `controller_projects.d`, `aap_organizations.d`).
-    * Example: `"aap_vars/AAP26/imports"`
+    * Example: `"orgs_vars/OCP0Lab/AAP26/imports"`
 
 * `filetree_to_flat_map`
     * **Required:** A dictionary mapping the final **variable name** to create (e.g., `controller_projects`) to the **directory** to scan for its files (e.g., `controller_projects.d`). This map is defined in `defaults/main.yml`.
@@ -48,7 +48,7 @@ filetree_to_flat_map:
 
 * `filetree_to_flat_output_path`
     * **Required if `save_files` is true:** The path to the new directory where the flat files will be created.
-    * Example: `"aap_vars/AAP26/exports_merged"`
+    * Example: `"orgs_vars/OCP0Lab/AAP26/exports_merged"`
 
 Dependencies
 ------------
@@ -60,7 +60,7 @@ Example Playbook
 
 ### Example 1: Merge variables in-memory (for another role)
 
-This playbook merges all files from `aap_vars/AAP26/imports2/` into in-memory variables and then (presumably) passes them to a subsequent role.
+This playbook merges all files from `orgs_vars/OCP0Lab/AAP26/imports2/` into in-memory variables and then (presumably) passes them to a subsequent role.
 
 ```yaml
 ---
@@ -72,7 +72,7 @@ This playbook merges all files from `aap_vars/AAP26/imports2/` into in-memory va
   vars:
     # 1. Path to your 'imports' directory that contains
     #    all the .d folders
-    filetree_to_flat_base_path: "aap_vars/AAP26/imports2"
+    filetree_to_flat_base_path: "orgs_vars/OCP0Lab/AAP26/imports2"
 
     # 2. 'filetree_to_flat_save_files' is false by default
 
@@ -106,13 +106,13 @@ This playbook merges all files and saves them to a new `exports_merged` director
 
   vars:
     # 1. Path to your 'imports' directory
-    filetree_to_flat_base_path: "aap_vars/AAP26/imports2"
+    filetree_to_flat_base_path: "orgs_vars/OCP0Lab/AAP26/imports2"
 
     # 2. Set the boolean to true
     filetree_to_flat_save_files: true
 
     # 3. Provide the new output directory
-    filetree_to_flat_output_path: "aap_vars/AAP26/exports_merged"
+    filetree_to_flat_output_path: "orgs_vars/OCP0Lab/AAP26/exports_merged"
 
   roles:
     - role: filetree_to_flat
