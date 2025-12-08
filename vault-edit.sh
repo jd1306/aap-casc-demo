@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Get the directory of the script
 parent_dir=$(dirname "$(readlink -f "$0")")
 

@@ -64,7 +64,6 @@ initialize_and_validate() {
     # --- Argument Parsing ---
     shift 2 # Remove org and env from the argument list
     tags=""
-    local all=false
 
     if [[ -z "${1:-}" ]]; then
         echo "Error: Missing option [-a|--all] or [-t|--tags]."
@@ -73,7 +72,7 @@ initialize_and_validate() {
 
     case $1 in
         -a|--all)
-            all=true
+            # When --all is used, tags remains empty, which signals "process all tags"
             ;;
         -t|--tags)
             if [ -n "$2" ]; then
@@ -99,6 +98,12 @@ initialize_and_validate() {
     # --- Source the variables file ---
     # shellcheck source=/dev/null
     source "$script_vars_file"
+
+    # --- Validate execution_environment is set ---
+    if [[ -z "${execution_environment:-}" ]]; then
+        echo "Error: 'execution_environment' variable not found in script vars file '$script_vars_file'"
+        exit 1
+    fi
 
     # --- Tag Validation Section ---
     if [ -n "$tags" ]; then
