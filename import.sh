@@ -76,6 +76,7 @@ cd "$parent_dir" || { echo "Failed to change directory to $parent_dir"; exit 1; 
 playbook_args=(
     "import.yml"
     "-e" "casc_aap_version=$CASC_AAP_VERSION" # Note: $CASC_AAP_VERSION is set in common_functions.sh
+    "-e" "{orgs: $org, dir_orgs_vars: orgs_vars, env: $env}"
     "-e" "{env_dir: $orgs_vars_dir/$org/$env}"
     "-e" "{common_dir: $orgs_vars_dir/$org/common}"
     "-e" "@$orgs_vars_dir/$org/$env/vault.yml"
