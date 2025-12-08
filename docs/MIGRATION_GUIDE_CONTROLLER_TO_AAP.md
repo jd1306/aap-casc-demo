@@ -110,7 +110,7 @@ Most roles in the new collection have been prefixed with `controller_` to make t
 | `organizations` | `controller_organizations` | Variable changed to `aap_organizations` |
 | `projects` | `controller_projects` | |
 | `project_update` | `controller_project_update` | |
-| `roles` | `controller_roles` | **New role** - was not in dispatch before |
+| `roles` | `controller_roles` | Renamed with `controller_` prefix |
 | `schedules` | `controller_schedules` | |
 | `settings` | `controller_settings` | |
 | `teams` | `controller_teams` | Variable changed to `aap_teams` |
@@ -356,6 +356,12 @@ ah_configuration_namespace_secure_logging: "{{ ah_configuration_secure_logging |
 # New
 hub_configuration_namespace_secure_logging: "{{ aap_configuration_secure_logging | default('false') }}"
 ```
+
+**Note**: Some Hub role-specific variables changed from `async_delay` to `loop_delay`. For example:
+- Old: `ah_configuration_collection_repository_async_delay`
+- New: `hub_configuration_collection_repository_loop_delay`
+
+This change reflects that Hub roles now use `loop_delay` (in addition to `async_timeout`) for better control over task execution timing.
 
 ### Hub Dispatch Role Changes
 
@@ -1428,6 +1434,10 @@ If you were using the EDA or Hub `dispatch` role:
 | | `controller_credentials` | `controller_credentials` (no change) |
 | | `controller_templates` | `controller_templates` (no change) |
 | | `controller_workflows` | `controller_workflows` (no change) |
+| | `controller_notifications` | `controller_notifications` (no change) |
+| | `controller_launch_jobs` | `controller_launch_jobs` (no change) |
+| | `controller_workflow_launch_jobs` | `controller_workflow_launch_jobs` (no change) |
+| | `controller_bulk_hosts` | `controller_bulk_hosts` (no change) |
 | **EDA Variables** | `eda_users` | `aap_user_accounts` or `eda_users` |
 | | `eda_user_tokens` | `eda_controller_tokens` |
 | | `eda_credentials` | `eda_credentials` (no change) |
@@ -1501,10 +1511,12 @@ aap_configuration_async_retries: 30  # If you need the old behavior
 
 ## Additional Resources
 
-- [Official Conversion Guide](https://github.com/redhat-cop/infra.aap_configuration/blob/devel/docs/CONVERSION_GUIDE.md)
+- [Official Conversion Guide](https://github.com/redhat-cop/infra.aap_configuration/blob/devel/docs/CONVERSION_GUIDE.md) - Main conversion guide from the new collection
+- [Tower Conversion Guide](https://github.com/redhat-cop/infra.aap_configuration/blob/devel/docs/TOWER_CONVERSION_GUIDE.md) - For migrating from Tower to Controller/AAP
 - [Getting Started Guide](https://github.com/redhat-cop/infra.aap_configuration/blob/devel/docs/GETTING_STARTED.md)
 - [Dispatch Role Documentation](https://github.com/redhat-cop/infra.aap_configuration/blob/devel/roles/dispatch/README.md)
 - [Extended Collection](https://github.com/redhat-cop/aap_configuration_extended)
+- [Old Controller Configuration Conversion Guide](https://github.com/redhat-cop/infra.controller_configuration/blob/devel/docs/CONVERSION_GUIDE.md) - For reference on Tower → Controller migration
 
 ---
 
