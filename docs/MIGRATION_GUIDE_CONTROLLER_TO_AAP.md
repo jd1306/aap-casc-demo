@@ -280,7 +280,7 @@ eda_configuration_dispatcher_roles:
 | `ansible_config` | `ansible_config` | N/A | **No change** - same role name |
 | `repository` | N/A | N/A | **Removed** - not in new collection |
 | `repository_sync` | N/A | N/A | **Removed** - not in new collection |
-| `offline_sync` | N/A | N/A | **Removed** - not in new collection |
+| `offline_sync` | `infra.aap_configuration_extended.offline_sync` | N/A | **Moved** - now in extended collection |
 
 ### Hub Variable Changes
 
@@ -410,7 +410,8 @@ hub_configuration_dispatcher_roles:
 **Key Changes:**
 - All roles now have `hub_` prefix
 - `group` and `user` roles removed from dispatch (use shared `aap_teams` and `aap_user_accounts` variables)
-- `ee_namespace`, `repository`, `repository_sync`, and `offline_sync` roles removed
+- `ee_namespace`, `repository`, and `repository_sync` roles removed
+- `offline_sync` role moved to `infra.aap_configuration_extended` collection
 - Variable names changed from `ah_*` to `hub_*` or `aap_*` (for shared variables)
 
 ---
@@ -656,7 +657,7 @@ These roles manage Ansible Automation Hub. The Hub roles were previously in the 
 | `ansible_config` | `ansible_config` | N/A | **No change** - same role name |
 | `repository` | N/A | N/A | **Removed** - not in new collection |
 | `repository_sync` | N/A | N/A | **Removed** - not in new collection |
-| `offline_sync` | N/A | N/A | **Removed** - not in new collection |
+| `offline_sync` | `infra.aap_configuration_extended.offline_sync` | N/A | **Moved** - now in extended collection |
 
 **Key Changes:**
 - All Hub roles now have the `hub_` prefix for consistency
@@ -664,7 +665,7 @@ These roles manage Ansible Automation Hub. The Hub roles were previously in the 
 - `user` role variable changed to `aap_user_accounts` (shared with controller/gateway)
 - `ee_namespace` role removed (functionality likely consolidated)
 - `repository` and `repository_sync` roles removed (may have been for collections)
-- `offline_sync` role removed
+- `offline_sync` role moved to `infra.aap_configuration_extended` collection
 
 ### EDA Roles
 
@@ -728,7 +729,7 @@ The following roles were removed from the old collections and moved to the [exte
 | `ee_namespace` | `galaxy.galaxy` | **Removed** | Functionality likely consolidated into other roles |
 | `repository` | `galaxy.galaxy` | **Removed** | Not present in new collection |
 | `repository_sync` | `galaxy.galaxy` | **Removed** | Not present in new collection |
-| `offline_sync` | `galaxy.galaxy` | **Removed** | Not present in new collection |
+| `offline_sync` | `galaxy.galaxy` | **Moved** | Now in `infra.aap_configuration_extended` collection |
 | `dispatch` | `galaxy.galaxy` | **Replaced** | Use main `dispatch` role which handles all components |
 
 **Note**: The Hub `dispatch` role from `galaxy.galaxy` is no longer needed. The main `dispatch` role in `infra.aap_configuration` handles Gateway, Hub, Controller, and EDA roles in the correct order.
