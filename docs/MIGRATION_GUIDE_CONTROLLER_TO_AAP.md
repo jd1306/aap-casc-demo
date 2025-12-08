@@ -33,9 +33,10 @@ to `infra.aap_configuration` (designed for AAP 2.5 and higher).
 4. [Role Consolidations](#role-consolidations)
 5. [New Roles](#new-roles)
 6. [Removed/Moved Roles](#removedmoved-roles)
-7. [Dispatch Role Changes](#dispatch-role-changes)
-8. [Step-by-Step Migration Guide](#step-by-step-migration-guide)
-9. [Variable Mapping Reference](#variable-mapping-reference)
+7. [Extended Collection](#extended-collection-infraaap_configuration_extended)
+8. [Dispatch Role Changes](#dispatch-role-changes)
+9. [Step-by-Step Migration Guide](#step-by-step-migration-guide)
+10. [Variable Mapping Reference](#variable-mapping-reference)
 
 ---
 
@@ -700,13 +701,14 @@ These roles manage Event-Driven Ansible. The EDA roles were previously in the se
 
 ### Roles Moved to Extended Collection
 
-The following roles were removed from the collection and moved to the [extended collection](https://github.com/redhat-cop/aap_configuration_extended):
+The following roles were removed from the old collections and moved to the [extended collection](https://github.com/redhat-cop/aap_configuration_extended) (`infra.aap_configuration_extended`):
 
-| Removed Role | Collection | Reason | Alternative |
-|:-------------|:-----------|:-------|:------------|
-| `filetree_create` | `controller_configuration` | Not creating/managing AAP objects | Use `aap_configuration_extended.filetree_create` |
-| `filetree_read` | `controller_configuration` | Not creating/managing AAP objects | Use `aap_configuration_extended.filetree_read` |
-| `object_diff` | `controller_configuration` | Not creating/managing AAP objects | Use `aap_configuration_extended.object_diff` |
+| Removed Role | Old Collection | Reason | Alternative |
+|:-------------|:---------------|:-------|:------------|
+| `filetree_create` | `infra.controller_configuration` | Not creating/managing AAP objects | Use `infra.aap_configuration_extended.filetree_create` |
+| `filetree_read` | `infra.controller_configuration` | Not creating/managing AAP objects | Use `infra.aap_configuration_extended.filetree_read` |
+| `object_diff` | `infra.controller_configuration` | Not creating/managing AAP objects | Use `infra.aap_configuration_extended.object_diff` |
+| `offline_sync` | `galaxy.galaxy` | Not creating/managing AAP objects | Use `infra.aap_configuration_extended.offline_sync` |
 
 **Note**: These roles are utility roles that don't directly create or manage objects on AAP, so they were moved to the extended collection to keep the main collection focused on configuration management.
 
@@ -730,6 +732,192 @@ The following roles were removed from the collection and moved to the [extended 
 | `dispatch` | `galaxy.galaxy` | **Replaced** | Use main `dispatch` role which handles all components |
 
 **Note**: The Hub `dispatch` role from `galaxy.galaxy` is no longer needed. The main `dispatch` role in `infra.aap_configuration` handles Gateway, Hub, Controller, and EDA roles in the correct order.
+
+---
+
+## Extended Collection (`infra.aap_configuration_extended`)
+
+The `infra.aap_configuration_extended` collection extends the functionality of `infra.aap_configuration` by providing advanced operations and utility roles for Ansible Automation Platform Configuration as Code. This collection is designed to work alongside `infra.aap_configuration` and provides additional capabilities for file tree management, object comparison, validation, and configuration upgrades.
+
+### Collection Information
+
+- **Collection Name**: `infra.aap_configuration_extended`
+- **Purpose**: Extended functionality for AAP Configuration as Code
+- **Dependencies**: Requires `infra.aap_configuration` (and its dependencies: `ansible.platform`, `ansible.hub`, `ansible.controller`, `ansible.eda`)
+- **Repository**: [https://github.com/redhat-cop/aap_configuration_extended](https://github.com/redhat-cop/aap_configuration_extended)
+
+### Roles in Extended Collection
+
+#### Roles Moved from Old Collections
+
+| Role Name | Old Collection | Description |
+|:----------|:---------------|:------------|
+| `filetree_create` | `infra.controller_configuration` | Creates a hierarchical directory structure from AAP object definitions |
+| `filetree_read` | `infra.controller_configuration` | Reads variables from a hierarchical directory structure |
+| `object_diff` | `infra.controller_configuration` | Compares AAP objects between current state and desired state |
+| `offline_sync` | `galaxy.galaxy` | Offline synchronization of collections to Automation Hub or Galaxy |
+
+#### New Roles
+
+| Role Name | Description |
+|:----------|:------------|
+| `aap_rules_validation` | Validates AAP configuration against custom rules (e.g., naming conventions, required fields) |
+| `upgrade_config` | Upgrades configuration from older collection formats to newer formats |
+
+### Installation
+
+Add the extended collection to your `requirements.yml`:
+
+```yaml
+collections:
+  - name: ansible.platform
+  - name: ansible.hub
+  - name: ansible.controller
+    version: ">=4.6.0"
+  - name: ansible.eda
+  - name: infra.aap_configuration
+  - name: infra.aap_configuration_extended  # Extended collection
+```
+
+Install with:
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
+
+### Variable Compatibility
+
+The extended collection uses the same connection variables as `infra.aap_configuration`:
+
+- **Connection Variables**: Uses `aap_*` prefix (e.g., `aap_hostname`, `aap_username`, `aap_password`, `aap_token`, `aap_validate_certs`)
+- **Data Variables**: Uses the same variable names as the main collection (e.g., `aap_organizations`, `controller_projects`, `hub_namespaces`, `eda_projects`)
+- **Configuration Variables**: Some roles may use `controller_configuration_*` or `hub_configuration_*` prefixes for role-specific settings, but they reference the global `aap_configuration_*` variables
+
+### Usage Examples
+
+#### Using `filetree_create`
+
+```yaml
+- name: Create file tree structure
+  hosts: localhost
+  collections:
+    - infra.aap_configuration_extended
+  roles:
+    - role: infra.aap_configuration_extended.filetree_create
+      vars:
+        aap_organizations:
+          - name: Production
+        controller_projects:
+          - name: MyProject
+            organization: Production
+        output_path: "/tmp/filetree_output"
+```
+
+#### Using `filetree_read`
+
+```yaml
+- name: Read file tree structure
+  hosts: localhost
+  collections:
+    - infra.aap_configuration_extended
+  roles:
+    - role: infra.aap_configuration_extended.filetree_read
+      vars:
+        orgs: Production
+        dir_orgs_vars: "/path/to/config"
+        env: prod
+```
+
+#### Using `object_diff`
+
+```yaml
+- name: Compare AAP objects
+  hosts: localhost
+  collections:
+    - infra.aap_configuration_extended
+  roles:
+    - role: infra.aap_configuration_extended.object_diff
+      vars:
+        aap_organizations:
+          - name: Production
+        controller_projects:
+          - name: MyProject
+```
+
+#### Using `offline_sync`
+
+```yaml
+- name: Sync collections offline
+  hosts: localhost
+  collections:
+    - infra.aap_configuration_extended
+  roles:
+    - role: infra.aap_configuration_extended.offline_sync
+      vars:
+        aap_hostname: hub.example.com
+        aap_username: admin
+        aap_password: "{{ vault_password }}"
+        hub_configuration_working_dir: /var/tmp/hub_offline_sync
+```
+
+#### Using `aap_rules_validation`
+
+```yaml
+- name: Validate AAP configuration
+  hosts: localhost
+  collections:
+    - infra.aap_configuration_extended
+  roles:
+    - role: infra.aap_configuration_extended.aap_rules_validation
+      vars:
+        aap_rules:
+          - name: "Project naming convention"
+            type: projects
+            rule: "name must match pattern '^[a-z0-9-]+$'"
+        aap_organizations:
+          - name: Production
+        controller_projects:
+          - name: my-project
+```
+
+### Migration from Old Collections
+
+If you were using these roles from the old collections, update your playbooks:
+
+**Old (Controller):**
+```yaml
+- role: infra.controller_configuration.filetree_create
+- role: infra.controller_configuration.filetree_read
+- role: infra.controller_configuration.object_diff
+```
+
+**Old (Hub):**
+```yaml
+- role: galaxy.galaxy.offline_sync
+```
+
+**New:**
+```yaml
+- role: infra.aap_configuration_extended.filetree_create
+- role: infra.aap_configuration_extended.filetree_read
+- role: infra.aap_configuration_extended.object_diff
+- role: infra.aap_configuration_extended.offline_sync
+```
+
+**Note**: The variable names used by these roles remain largely the same, but you should update connection variables to use the `aap_*` prefix instead of `controller_*` or `ah_*` prefixes.
+
+### Key Features
+
+1. **File Tree Management**: `filetree_create` and `filetree_read` enable hierarchical organization of configuration files, supporting multi-environment and multi-organization setups
+2. **Object Comparison**: `object_diff` helps identify differences between desired and current AAP state
+3. **Offline Operations**: `offline_sync` enables collection synchronization without direct API access
+4. **Configuration Validation**: `aap_rules_validation` provides custom rule validation for configuration compliance
+5. **Configuration Upgrades**: `upgrade_config` assists in migrating from older collection formats
+
+### Additional Resources
+
+- [Extended Collection README](https://github.com/redhat-cop/aap_configuration_extended/blob/devel/README.md)
+- [Extended Collection Conversion Guide](https://github.com/redhat-cop/aap_configuration_extended/blob/devel/docs/CONVERSION_GUIDE.md)
+- [Automate the Automation Guide](https://github.com/redhat-cop/aap_configuration_extended/blob/devel/roles/filetree_create/automatetheautomation.md)
 
 ---
 
@@ -1109,22 +1297,32 @@ collections:
 
 #### Removed Roles (Moved to Extended Collection)
 
-If you were using `filetree_create`, `filetree_read`, or `object_diff`:
+If you were using `filetree_create`, `filetree_read`, `object_diff`, or `offline_sync`:
 
 1. Install the extended collection:
 ```yaml
 collections:
-  - name: redhat_cop.aap_configuration_extended
+  - name: infra.aap_configuration_extended
 ```
 
 2. Update role references:
 ```yaml
-# Old
+# Old (Controller roles)
 - role: infra.controller_configuration.filetree_create
+- role: infra.controller_configuration.filetree_read
+- role: infra.controller_configuration.object_diff
+
+# Old (Hub role)
+- role: galaxy.galaxy.offline_sync
 
 # New
-- role: redhat_cop.aap_configuration_extended.filetree_create
+- role: infra.aap_configuration_extended.filetree_create
+- role: infra.aap_configuration_extended.filetree_read
+- role: infra.aap_configuration_extended.object_diff
+- role: infra.aap_configuration_extended.offline_sync
 ```
+
+**Note**: The extended collection uses the same connection variables (`aap_*`) and data variables as the main collection, so you only need to update the role references and collection name.
 
 #### Consolidated EDA Roles
 
@@ -1282,9 +1480,9 @@ aap_configuration_async_retries: 30  # If you need the old behavior
 
 ### Issue 3: Missing Roles
 
-**Problem**: Roles like `filetree_create` are not found.
+**Problem**: Roles like `filetree_create`, `filetree_read`, `object_diff`, or `offline_sync` are not found.
 
-**Solution**: These roles were moved to the extended collection. Install `redhat_cop.aap_configuration_extended` and update your role references.
+**Solution**: These roles were moved to the extended collection. Install `infra.aap_configuration_extended` and update your role references. See the [Extended Collection](#extended-collection-infraaap_configuration_extended) section for details.
 
 ### Issue 4: Variable Not Found Errors
 
@@ -1327,12 +1525,15 @@ The migration from `infra.controller_configuration`, `infra.eda_configuration`, 
 5. **New capabilities**: Gateway roles added, Hub and EDA roles enhanced
 6. **Role consolidation**: 
    - Some roles consolidated (e.g., `project_sync` into `eda_projects`)
-   - Utility roles moved to extended collection
+   - Utility roles moved to `infra.aap_configuration_extended` collection
 7. **New EDA roles**: `eda_credential_types` and `eda_event_streams` added
 8. **EDA role renames**: `user_token` → `eda_controller_tokens`
 9. **Dispatch changes**: New execution order (Gateway → Hub → Controller → EDA) and unified structure
+10. **Extended collection**: Utility roles (`filetree_create`, `filetree_read`, `object_diff`, `offline_sync`) and new roles (`aap_rules_validation`, `upgrade_config`) available in `infra.aap_configuration_extended`
 
 The new collection provides a unified approach to managing all components of AAP 2.5+ (Controller, Hub, Gateway, and EDA), with consistent variable naming and role organization. This eliminates the need to manage three separate collections (`infra.controller_configuration`, `infra.eda_configuration`, and `galaxy.galaxy`) and separate connection variables for different AAP components. All components now use the same connection variables (`aap_*`) and global configuration variables (`aap_configuration_*`), significantly simplifying configuration management.
+
+**Extended Collection**: The `infra.aap_configuration_extended` collection provides additional utility roles for advanced operations like file tree management, object comparison, offline synchronization, configuration validation, and configuration upgrades. These roles use the same connection and data variables as the main collection, ensuring seamless integration.
 
 ---
 
