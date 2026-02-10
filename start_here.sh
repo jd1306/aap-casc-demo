@@ -54,9 +54,24 @@ prompt_and_save_version() {
         fi
     done
 
+    # Ask if user wants flattened mode (no AAP subfolders; flatten_output: true in vars.yml)
+    echo ""
+    read -p "Do you want to use flattened mode? (y/n) [n]: " flatten_choice
+    flatten_choice=${flatten_choice:-n}
+    if [[ "$flatten_choice" =~ ^[yY] ]]; then
+        flatten_output_value="true"
+        echo "  -> Flattened mode: YES (no AAP subfolders will be created)"
+    else
+        flatten_output_value="false"
+        echo "  -> Flattened mode: NO (AAP subfolders will be created)"
+    fi
+
     # Create env vars file
     echo "  -> Saving version to $relative_target_file..."
-    echo "CASC_AAP_VERSION=\"$casc_aap_version\"" > "$target_env_vars_file"
+    {
+        echo "CASC_AAP_VERSION=\"$casc_aap_version\""
+        echo "FLATTEN_OUTPUT=$flatten_output_value"
+    } > "$target_env_vars_file"
     # --- START FIX: Align ...done. ---
     echo "  ...done."
     # --- END FIX ---
@@ -152,9 +167,12 @@ if [[ -d "$env_dir" && \
       -f "$vault_file" ]]; then
     
     source "$env_vars_file"
+    FLATTEN_OUTPUT=${FLATTEN_OUTPUT:-false}
     build_full_aap_folders
-    ensure_folders_exist "${full_aap_folders[@]}"
-    
+    if [[ "$FLATTEN_OUTPUT" != "true" ]]; then
+        ensure_folders_exist "${full_aap_folders[@]}"
+    fi
+
     echo "Error: Environment '$env' in organization '$org' already exists and appears complete."
     echo "If you want to edit the existing vault, use: ./vault-edit.sh $org $env"
     exit 1
@@ -188,14 +206,24 @@ else
     echo "  -> 'vars.env' file already exists."
 fi
 
+# Load env vars so CASC_AAP_VERSION and FLATTEN_OUTPUT are available
+source "$env_vars_file"
+FLATTEN_OUTPUT=${FLATTEN_OUTPUT:-false}
+
 # --- Component 3: AAP Directories ---
 build_full_aap_folders
-ensure_folders_exist "${full_aap_folders[@]}"
+if [[ "$FLATTEN_OUTPUT" != "true" ]]; then
+    ensure_folders_exist "${full_aap_folders[@]}"
+fi
 
 # --- Component 2: vars.yml (Ansible Vars) ---
 if [[ ! -f "$vars_file" ]]; then
     echo "  -> Creating missing 'vars.yml' file from template..."
     cp "$vars_template_file" "$vars_file"
+    if [[ "$FLATTEN_OUTPUT" = "true" ]]; then
+        sed -i 's/^flatten_output: .*/flatten_output: true/' "$vars_file"
+        echo "  -> Set flatten_output: true in vars.yml (flattened mode)."
+    fi
 else
     echo "  -> 'vars.yml' file already exists."
 fi
