@@ -99,8 +99,8 @@ initialize_and_validate() {
     # shellcheck source=/dev/null
     source "$script_vars_file"
 
-    # --- Validate execution_environment is set ---
-    if [[ -z "${execution_environment:-}" ]]; then
+    # --- Validate execution_environment is set (only when using ansible-navigator / EE) ---
+    if [[ "${USE_ANSIBLE_PLAYBOOK:-false}" != "true" ]] && [[ -z "${execution_environment:-}" ]]; then
         echo "Error: 'execution_environment' variable not found in script vars file '$script_vars_file'"
         exit 1
     fi

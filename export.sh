@@ -12,7 +12,10 @@ script_vars_dir="$parent_dir/script_vars"
 usage() {
     local org_context=$1
     local env_context=$2
-    echo "Usage: $0 <org> <env> [-a|--all] [-t|--tags <tags>]"
+    echo "Usage: $0 <org> <env> [--playbook|--navigator] [-a|--all] [-t|--tags <tags>]"
+    echo "  --playbook    Use ansible-playbook (versioned collections). Overrides CASC_USE_PLAYBOOK."
+    echo "  --navigator   Use ansible-navigator with EE (default). Overrides CASC_USE_PLAYBOOK."
+    echo "  Default: use CASC_USE_PLAYBOOK env (1/true/yes = playbook); else navigator."
     echo ""
 
     if [[ -z "$org_context" ]] || [[ -z "$env_context" ]]; then
@@ -65,10 +68,27 @@ usage() {
 # shellcheck source=common_functions.sh
 source "$parent_dir/common_functions.sh"
 
+# --- Parse --playbook / --navigator (must be done before initialize_and_validate) ---
+# Default from env: CASC_USE_PLAYBOOK=1 or true or yes → playbook; else navigator.
+case "${CASC_USE_PLAYBOOK:-1}" in
+    1|true|yes|TRUE|YES) USE_ANSIBLE_PLAYBOOK=true ;;
+    *)                   USE_ANSIBLE_PLAYBOOK=false ;;
+esac
+filtered_args=()
+for arg in "$@"; do
+    if [[ "$arg" == "--playbook" ]]; then
+        USE_ANSIBLE_PLAYBOOK=true
+    elif [[ "$arg" == "--navigator" ]]; then
+        USE_ANSIBLE_PLAYBOOK=false
+    else
+        filtered_args+=("$arg")
+    fi
+done
+
 # --- Initialize and Validate ---
-# Pass "export" to build the correct yq keys, and pass all script arguments with "$@"
+# Pass "export" to build the correct yq keys, and pass script arguments (without --playbook).
 # common_functions.sh will parse $env and load the $CASC_AAP_VERSION from it.
-initialize_and_validate "export" "$@"
+initialize_and_validate "export" "${filtered_args[@]}"
 
 # --- Build and Execute Command ---
 dest_folder="${org,,}_${env,,}_export_$(date +%Y%m%d_%H%M%S)"
@@ -88,10 +108,24 @@ if [ -n "$tags" ]; then
     playbook_args+=("-e" "$extra_vars")
 fi
 
-echo "Running playbook for AAP version: $CASC_AAP_VERSION"
-ansible-navigator run "${playbook_args[@]}" \
-    --mode stdout \
-    --pae false \
-    --pull-policy missing \
-    --execution-environment-image "$execution_environment" \
-    --execution-environment-volume-mounts "$(pwd):/home/user:Z"
+echo "Running playbook for AAP version: $CASC_AAP_VERSION ($( [[ "$USE_ANSIBLE_PLAYBOOK" == "true" ]] && echo 'ansible-playbook' || echo 'ansible-navigator/EE' ))"
+
+if [[ "$USE_ANSIBLE_PLAYBOOK" == "true" ]]; then
+    # Use ansible-playbook with a version-specific collections path (no EE).
+    # Collections must be installed per AAP version via install_collections.sh.
+    collections_dir="$parent_dir/collections/$CASC_AAP_VERSION"
+    if [[ ! -d "$collections_dir" ]] || [[ ! -d "$collections_dir/ansible_collections" ]]; then
+        echo "Error: Collections not found for AAP $CASC_AAP_VERSION at $collections_dir"
+        echo "Run ./install_collections.sh to install collections for each AAP version."
+        exit 1
+    fi
+    # Use only this path for this run (override; no export so caller's env is untouched).
+    ANSIBLE_COLLECTIONS_PATHS="$collections_dir" ansible-playbook "${playbook_args[@]}"
+else
+    ansible-navigator run "${playbook_args[@]}" \
+        --mode stdout \
+        --pae false \
+        --pull-policy missing \
+        --execution-environment-image "$execution_environment" \
+        --execution-environment-volume-mounts "$(pwd):/home/user:Z"
+fi

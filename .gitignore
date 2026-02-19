@@ -1,3 +1,4 @@
+ansible_collections/
 vault.yml
 !templates/**
 .vault_pass.txt
