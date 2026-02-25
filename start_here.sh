@@ -93,7 +93,7 @@ ensure_folders_exist() {
 }
 
 build_full_aap_folders() {
-    local script_vars_file="$script_vars_dir/$casc_aap_version/vars.env"
+    local script_vars_file="$script_vars_dir/$CASC_AAP_VERSION/vars.env"
     source "$script_vars_file"
     for folder in "${aap_folders_needed[@]}"; do
         full_aap_folders+=("$relative_env_dir/imports/$folder")
