@@ -1,0 +1,35 @@
+---
+# tasks file for import_export
+- name: "{{ __task_name }}"
+  vars:
+    __task_name: "AAP {{ casc_aap_version }} | Variables | Setup"
+  ansible.builtin.set_fact:
+    __auth_mode: >-
+      {%- set __auth_mode = 'controller' if (casc_aap_version | float) <= 2.4 else 'gateway' -%}
+      {{ __auth_mode }}
+  tags:
+    - always
+
+- name: "{{ __task_name }}"
+  vars:
+    __task_name: "AAP {{ casc_aap_version }} | Authentication | Setup"
+  ansible.builtin.include_tasks: "{{ __auth_mode }}/auth_setup.yml"
+  when: vault_aap_token is not defined
+  tags:
+    - always
+
+- name: "{{ __task_name }}"
+  vars:
+    __task_name: "AAP {{ casc_aap_version }} | {{ import_export_mode | trim | capitalize }} Mode"
+  ansible.builtin.include_tasks: "{{ __auth_mode }}/{{ import_export_mode | trim | lower }}.yml"
+  tags:
+    - always
+
+- name: "{{ __task_name }}"
+  vars:
+    __task_name: "AAP {{ casc_aap_version }} | Authentication | Clear"
+  ansible.builtin.include_tasks: "{{ __auth_mode }}/auth_clear.yml"
+  when: __clear_token | default(false)
+  tags:
+    - always
+...
