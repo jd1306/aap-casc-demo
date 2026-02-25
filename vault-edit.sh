@@ -54,12 +54,10 @@ if [[ ! -d "$org_base_dir" ]]; then
     exit 1
 fi
 
-# --- Validate Environment ---
-# Check if the environment exists and is not the 'common' directory.
-if [[ ! -d "$org_base_dir/$env" ]]; then
+# --- Validate Environment (only for non-common; common may not exist yet) ---
+if [[ "$env" != "common" ]] && [[ ! -d "$org_base_dir/$env" ]]; then
     echo "Error: Environment '$env' not found or is invalid in organization '$org'."
     echo ""
-    # List available environments for the given organization.
     available_envs=$(find "$org_base_dir" -mindepth 1 -maxdepth 1 -type d -not -name "common" -printf "%f|" | sed 's/|$//')
     echo "Available environments in '$org': {$available_envs}"
     exit 1
@@ -68,8 +66,27 @@ fi
 # Change to the playbooks directory.
 cd "$parent_dir" || { echo "Failed to change directory to $parent_dir"; exit 1; }
 
-# --- Define the file to edit and execute the command ---
+# --- Define the file to edit ---
 file_to_edit="${org_base_dir}/${env}/vault.yml"
+vault_template_dir="$parent_dir/templates"
+
+# --- Create vault from template if it doesn't exist ---
+if [[ ! -f "$file_to_edit" ]]; then
+    mkdir -p "$(dirname "$file_to_edit")"
+    if [[ "$env" == "common" ]]; then
+        template="$vault_template_dir/vault_common.yml"
+    else
+        template="$vault_template_dir/vault.yml"
+    fi
+    if [[ ! -f "$template" ]]; then
+        echo "Error: Vault template not found: $template"
+        exit 1
+    fi
+    echo "Creating new vault from template: $template"
+    cp "$template" "$file_to_edit"
+    echo "Encrypting new vault (you will set the vault password)..."
+    ansible-vault encrypt "$file_to_edit"
+fi
 
 echo "Opening vault file: $file_to_edit"
 ansible-vault edit "$file_to_edit"
