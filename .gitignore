@@ -13,4 +13,5 @@ ansible-navigator.*
 **/.ansible
 
 aap_vars/
-orgs_vars/
+orgs_vars/**
+!orgs_vars/.gitkeep
