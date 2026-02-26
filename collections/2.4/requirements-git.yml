@@ -1,0 +1,11 @@
+---
+collections:
+  - name: infra.controller_configuration
+    source: https://github.com/redhat-cop/infra.controller_configuration.git
+    type: git
+  - name: ansible.controller
+    source: https://github.com/ansible/awx.git
+    resourcepath: awx_collection
+    type: git
+  - name: ansible.eda
+  - name: ansible.hub

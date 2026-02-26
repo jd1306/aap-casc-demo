@@ -17,17 +17,31 @@ script_vars_dir="$parent_dir/script_vars"
 collections_base="$parent_dir/collections"
 
 usage() {
-    echo "Usage: $0 [version ...]"
+    echo "Usage: $0 [--git] [version ...]"
     echo "  Install collections for each AAP version into collections/<version>/"
     echo "  With no arguments, installs for all versions in script_vars (e.g. 2.4 2.5 2.6)."
     echo "  With version(s), installs only for those (e.g. $0 2.6)."
     echo ""
-    echo "  Each version needs: collections/<version>/requirements.yml"
+    echo "  Options:"
+    echo "    --git    Use requirements-git.yml instead of requirements.yml per version"
+    echo ""
+    echo "  Each version needs: collections/<version>/requirements.yml (or requirements-git.yml with --git)"
     exit 1
 }
 
+# Parse options
+use_git=0
+versions=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --git)   use_git=1; shift ;;
+        -h|--help) usage ;;
+        *)       versions+=("$1"); shift ;;
+    esac
+done
+
 # Resolve list of versions to install
-if [[ $# -eq 0 ]]; then
+if [[ ${#versions[@]} -eq 0 ]]; then
     versions=()
     for vdir in "$script_vars_dir"/*/; do
         [[ -e "$vdir" ]] || continue
@@ -38,12 +52,13 @@ if [[ $# -eq 0 ]]; then
         echo "No version directories found under $script_vars_dir"
         exit 1
     fi
-else
-    versions=("$@")
 fi
 
+req_basename=$([[ $use_git -eq 1 ]] && echo "requirements-git.yml" || echo "requirements.yml")
+[[ $use_git -eq 1 ]] && echo "Using requirements file: $req_basename (--git)"
+echo ""
 for ver in "${versions[@]}"; do
-    req_file="$collections_base/$ver/requirements.yml"
+    req_file="$collections_base/$ver/$req_basename"
     install_dir="$collections_base/$ver"
 
     if [[ ! -f "$req_file" ]]; then
