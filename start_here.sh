@@ -15,9 +15,9 @@ usage() {
     echo "  1. Prompting you to select an AAP version."
     echo "  2. Creating the directory structure (orgs_vars/<org_name>/<env_name>/...)"
     echo "  3. Saving your version choice to 'orgs_vars/<org_name>/<env_name>/vars.env'"
-    echo "  4. Copying 'vault_template.yml' to 'orgs_vars/<org_name>/<env_name>/vault.yml'"
-    echo "  5. Encrypting the new 'vault.yml' with ansible-vault"
-    echo "  6. Opening the new vault file for editing"
+    echo "  4. Copying vault templates to org/env (vault.yml) and org/common (vault.yml from vault_common.yml if missing)"
+    echo "  5. Encrypting new vault files with ansible-vault"
+    echo "  6. Opening the new env vault file for editing"
     echo ""
     echo "If the environment directory or any of its files are missing, this script"
     echo "will repair it by creating only the missing components."
@@ -247,6 +247,25 @@ if [[ ! -f "$vault_file" ]]; then
     new_vault_created=true # Set flag to open editor
 else
     echo "  -> 'vault.yml' file already exists."
+fi
+
+# --- Component 4: common vault (org-level secrets) ---
+common_vault_file="$org_base_dir/common/vault.yml"
+vault_common_template_file="$parent_dir/templates/vault_common.yml"
+if [[ ! -f "$common_vault_file" ]]; then
+    if [[ -f "$vault_common_template_file" ]]; then
+        echo "  -> Creating missing common vault from template..."
+        cp "$vault_common_template_file" "$common_vault_file"
+        echo "  -> Encrypting common vault..."
+        if ! ansible-vault encrypt "$common_vault_file" > /dev/null 2>&1; then
+            echo "Error: Failed to encrypt common vault. You can create it later with: ./vault-edit.sh $org common"
+            rm -f "$common_vault_file"
+        else
+            echo "  -> Common vault created and encrypted."
+        fi
+    fi
+else
+    echo "  -> Common vault already exists."
 fi
 
 # --- 4. Final Step: Edit vault if it's brand new ---
