@@ -15,6 +15,9 @@
     patterns:
       - '*.yml'
       - '*.yaml'
+    file_type: file
+    excludes:
+      - "ignore_*"
   register: found_var_files
 
 - name: Initialize empty var dictionary

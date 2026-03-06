@@ -59,7 +59,7 @@
     file_item:
       subfolder: "{{ current_subfolder }}"
       filename: "{{ filename_to_use }}"
-      content: "---\n{{ content_dict | to_nice_yaml(indent=2, sort_keys=False) }}"
+      content: "{{ content_dict | to_nice_yaml(indent=2, sort_keys=False, explicit_start=True) }}"
   when:
     - filtered_list | length > 0
 ...
