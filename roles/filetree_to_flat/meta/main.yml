@@ -5,10 +5,9 @@ galaxy_info:
     Converts a structured file tree directory of Ansible variable files back into a single "flat" variable in memory.
     It can also optionally save these merged variables back to individual flat files.
   company: Red Hat
-  # issue_tracker_url: http://example.com/issue/tracker
-  license: GPL-3.0-or-later
-  min_ansible_version: 2.15.0
-  # min_ansible_container_version:
+  issue_tracker_url: https://github.com/lennysh/aap-casc-demo/issues
+  license: MIT
+  min_ansible_version: 2.16.0
   galaxy_tags: []
 dependencies: []
 ...
