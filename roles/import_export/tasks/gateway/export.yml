@@ -8,9 +8,19 @@
 
 - name: FileTree Create for AAP {{ casc_aap_version }}
   vars:
+    output_path: "{{ export_path }}/flat_version"
     aap_oauthtoken: "{{ aap_token }}"
   ansible.builtin.import_role:
     name: infra.aap_configuration_extended.filetree_create
+  tags:
+    - always
+
+- name: Flat to FileTree
+  vars:
+    flat_to_filetree_source_path: "{{ export_path }}/flat_version"
+    flat_to_filetree_output_path: "{{ export_path }}/filetree_version"
+  ansible.builtin.import_role:
+    name: flat_to_filetree
   tags:
     - always
 ...

@@ -95,11 +95,13 @@ dest_folder="${org,,}_${env,,}_export_$(date +%Y%m%d_%H%M%S)"
 cd "$parent_dir" || { echo "Failed to change directory to $parent_dir"; exit 1; }
 
 playbook_args=(
-    "export.yml"
+    "import_export.yml"
+    "-e" "import_export_mode=export"
     "-e" "casc_aap_version=$CASC_AAP_VERSION" # Note: $CASC_AAP_VERSION is set in common_functions.sh
-    "-e" "{output_path: $orgs_vars_dir/$org/$env/exports/$dest_folder}"
+    "-e" "{export_path: $orgs_vars_dir/$org/$env/exports/$dest_folder}"
     "-e" "@$orgs_vars_dir/$org/$env/vault.yml"
     "-e" "@$orgs_vars_dir/$org/$env/vars.yml"
+    "-e" "flatten_output=true"
 )
 
 if [ -n "$tags" ]; then

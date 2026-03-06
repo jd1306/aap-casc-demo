@@ -94,7 +94,8 @@ initialize_and_validate "import" "${filtered_args[@]}"
 cd "$parent_dir" || { echo "Failed to change directory to $parent_dir"; exit 1; }
 
 playbook_args=(
-    "import.yml"
+    "import_export.yml"
+    "-e" "import_export_mode=import"
     "-e" "casc_aap_version=$CASC_AAP_VERSION" # Note: $CASC_AAP_VERSION is set in common_functions.sh
     "-e" "{orgs: $org, dir_orgs_vars: orgs_vars, env: $env}"
     "-e" "{env_dir: $orgs_vars_dir/$org/$env}"

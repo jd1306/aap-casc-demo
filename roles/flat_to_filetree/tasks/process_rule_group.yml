@@ -17,16 +17,16 @@
       {%- endif -%}
 
 # 3. Ensure this subfolder exists
-- name: "Ensure sub-directory exists for {{ rule.key }}"
-  ansible.builtin.file:
-    path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ current_subfolder }}"
-    state: directory
-    mode: '0755'
-  run_once: true
-  delegate_to: localhost
-  when:
-    - filtered_list | length > 0
-    - current_subfolder | length > 0
+# - name: "Ensure sub-directory exists for {{ rule.key }}"
+#   ansible.builtin.file:
+#     path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ current_subfolder }}"
+#     state: directory
+#     mode: '0755'
+#   run_once: true
+#   delegate_to: localhost
+#   when:
+#     - filtered_list | length > 0
+#     - current_subfolder | length > 0
 
 # 4. Group the list *once* and save it as a fact.
 #    Ansible will convert the groupby object into a list of lists.

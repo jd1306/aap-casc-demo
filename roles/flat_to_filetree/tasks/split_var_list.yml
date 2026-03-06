@@ -10,16 +10,6 @@
   run_once: true
   delegate_to: localhost
 
-- name: "Ensure base output directory exists for {{ target_folder_name }}"
-  ansible.builtin.file:
-    path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}"
-    state: directory
-    mode: '0755'
-  run_once: true
-  delegate_to: localhost
-  when:
-    - target_var_value is not none
-
 - name: "Initialize file list for this variable"
   ansible.builtin.set_fact:
     files_to_create: []
@@ -68,11 +58,30 @@
     - target_var_value is iterable and target_var_value is not string
     - rule.type == 'list' # Ensure we only run 'list' rules
 
+- name: "Ensure base output directory exists for {{ target_folder_name }}"
+  ansible.builtin.file:
+    path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}"
+    state: directory
+    mode: '0755'
+  run_once: true
+  delegate_to: localhost
+  when:
+    # - target_var_value is not none
+    - files_to_create is defined
+    - files_to_create | length > 0
+
 # This task is the single point of file creation
 - name: "📝 Create all files for '{{ target_var_name }}'"
   ansible.builtin.copy:
     content: "{{ item.content }}"
-    dest: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ item.subfolder }}{{ item.filename }}"
+    dest: >-
+      {{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ item.subfolder }}
+      {{
+        item.filename
+        | regex_replace('[^a-zA-Z0-9_.-]', '_')
+        | regex_replace('_+', '_')
+        | regex_replace('^_+|_+$', '')
+      }}
     mode: '0644'
   loop: "{{ files_to_create }}"
   loop_control:
