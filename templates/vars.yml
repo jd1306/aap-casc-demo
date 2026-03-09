@@ -15,9 +15,9 @@ secrets_as_variables: true
 # New var (mentioned above) prefix
 secrets_as_variables_prefix: "vault"
 
-# Each "instance" has it's own imports folder, but for objects that you want them same
+# Each "instance" has its own imports folder, but for objects that you want the same
 # across multiple instances, you can put those in the "orgs_vars/<org_name>/common" folder.
-# If this is "true", the "import" process will grab thse as well.  To prevent this,
+# If this is "true", the "import" process will grab these as well. To prevent this,
 # change this to "false".
 import_common: true
 ...
