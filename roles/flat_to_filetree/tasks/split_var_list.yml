@@ -70,6 +70,21 @@
     - files_to_create is defined
     - files_to_create | length > 0
 
+- name: "Ensure subfolder directories exist"
+  ansible.builtin.file:
+    path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ item.subfolder }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ files_to_create }}"
+  loop_control:
+    loop_var: item
+    label: "Ensure subfolder directory exists for {{ item.subfolder }}"
+  run_once: true
+  delegate_to: localhost
+  when:
+    - files_to_create is defined
+    - files_to_create | length > 0
+
 # This task is the single point of file creation
 - name: "📝 Create all files for '{{ target_var_name }}'"
   ansible.builtin.copy:

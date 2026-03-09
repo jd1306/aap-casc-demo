@@ -62,6 +62,11 @@ flat_to_filetree_filename_logic:
       key: "user"
       subfolder: "user_roles.d"
 
+  gateway_role_user_assignments:
+    - type: list
+      key: "user"
+      subfolder: ""
+
   aap_user_accounts:
     - type: list
       key: "username"
