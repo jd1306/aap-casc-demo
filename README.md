@@ -1,6 +1,6 @@
 # AAP Configuration as Code Demo
 
-[![GitHub last commit](https://img.shields.io/github/last-commit/lennysh/aap-casc-demo.svg)](https://github.com/lennysh/aap-casc-demo/commits/main) [![GitHub license](https://img.shields.io/github/license/lennysh/aap-casc-demo.svg)](https://github.com/lennysh/aap-casc-demo/blob/main/LICENSE) [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/lennysh/aap-casc-demo/pulls) ![GitHub contributors](https://img.shields.io/github/contributors/lennysh/aap-casc-demo) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/lennysh/aap-casc-demo) ![GitHub Discussions](https://img.shields.io/github/discussions/lennysh/aap-casc-demo)
+[![GitHub last commit](https://img.shields.io/github/last-commit/lennysh/aap-casc-demo.svg)](https://github.com/lennysh/aap-casc-demo/commits/main) [![GitHub license](https://img.shields.io/github/license/lennysh/aap-casc-demo.svg)](https://github.com/lennysh/aap-casc-demo/blob/main/LICENSE) [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/lennysh/aap-casc-demo/pulls) ![GitHub contributors](https://img.shields.io/github/contributors/lennysh/aap-casc-demo) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/lennysh/aap-casc-demo)
 
 > [!WARNING]
 > **🚧 Work in Progress 🚧**
@@ -261,8 +261,7 @@ Additional guides and references in the **`docs/`** directory:
 We welcome feedback and contributions.
 
 * **Feature requests, bugs, documentation:** Open a [GitHub Issue](https://github.com/lennysh/aap-casc-demo/issues) and choose the appropriate template (Feature request, Bug report, or Documentation).
-* **Questions, usage help, or general discussion:** Use [GitHub Discussions](https://github.com/lennysh/aap-casc-demo/discussions).
-* **Chat:** Join the [Matrix channel](https://matrix.to/#/#lennysh-aap-casc-demo:matrix.org) for real-time conversation.
+* **Questions, usage help, or chat:** Join the [Matrix channel](https://matrix.to/#/!xDnPWJwDoYgRDsypmy:matrix.org?via=matrix.org).
 * **Code or doc changes:** Open a Pull Request. The repo uses a [pull request template](.github/PULL_REQUEST_TEMPLATE.md) to capture description, type of change, and a short checklist.
 
 ## 📦 Supported AAP Versions
