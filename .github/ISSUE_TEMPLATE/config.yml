@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Issues
+    url: https://github.com/lennysh/aap-casc-demo/issues
+    about: Create a new issue to report a bug or request a feature
+  - name: GitHub Discussions
+    url: https://github.com/lennysh/aap-casc-demo/discussions
+    about: Discuss the project with the community
+  - name: GitHub Pull Requests
+    url: https://github.com/lennysh/aap-casc-demo/pulls
+    about: Create a new pull request to contribute to the project

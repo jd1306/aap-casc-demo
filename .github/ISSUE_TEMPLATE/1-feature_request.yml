@@ -1,0 +1,54 @@
+name: Feature request
+description: Suggest a new feature or improvement for the AAP CASC demo
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement! Please fill out as much as you can so we can evaluate the idea.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem would this solve, or what workflow would it improve?
+      placeholder: e.g. "I'd like to run drift checks without hammering the API..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed solution
+      description: Describe the feature or change you have in mind.
+      placeholder: e.g. "A script that runs export once and diffs against a baseline..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you've thought about (optional).
+      placeholder: e.g. "Direct DB read-only; decided against due to credential concerns."
+    validations:
+      required: false
+  - type: dropdown
+    id: aap-version
+    attributes:
+      label: AAP version (if relevant)
+      description: Which AAP version(s) would this apply to?
+      options:
+        - Not applicable
+        - 2.4
+        - 2.5
+        - 2.6
+        - Multiple / all supported
+      default: 0
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Links, references, or context that might help.
+    validations:
+      required: false

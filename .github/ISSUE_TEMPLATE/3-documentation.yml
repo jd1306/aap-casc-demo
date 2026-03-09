@@ -1,0 +1,24 @@
+name: Documentation
+description: Suggest a documentation improvement or report unclear docs
+title: "[Docs]: "
+labels: ["documentation", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help us improve the README, guides, and other docs.
+  - type: textarea
+    id: what-where
+    attributes:
+      label: What's wrong or missing?
+      description: Which part of the docs (e.g. README, docs/DRIFT_DETECTION_OPTIONS.md) and what's unclear or missing?
+      placeholder: e.g. "README Step 2 doesn't explain how to pass tags to export.sh"
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: How you'd like it explained or what to add (optional).
+    validations:
+      required: false
