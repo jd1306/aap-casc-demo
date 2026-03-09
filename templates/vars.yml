@@ -8,9 +8,6 @@
 # If set to false, the import process will read the filetree layout (e.g. controller_projects.d/gateway_teams.d/etc.).
 flatten_output: false
 
-# Removes the internal ID # from the filenames when 'flatten_output' is false (or undefined)
-omit_id: true
-
 # Replaces '$encrypted$' with a custom variable name, thus requiring
 # the var to be defined before it can be imported back in
 secrets_as_variables: true

@@ -2,3 +2,8 @@
 # vars file for import_export
 
 organization: '' # noqa: var-naming[no-role-prefix]
+
+# Removes the internal ID # from the filenames when 'flatten_output' is false (or undefined) (not currently needed)
+# omit_id: true
+
+...
