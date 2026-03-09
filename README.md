@@ -19,6 +19,8 @@
     * [Exporting Configuration](#exporting-configuration)
     * [Importing Configuration](#importing-configuration)
 * 💡 [Tips and Advanced Usage](#-tips-and-advanced-usage)
+* 📚 [Documentation](#-documentation)
+* 🤝 [Contributing](#-contributing)
 * 📦 [Supported AAP Versions](#-supported-aap-versions)
 * 📜 [License](#-license)
 
@@ -56,23 +58,23 @@ If you're new to CaSC, here's why it's so powerful:
 
 This tool provides two main wrapper scripts, `export.sh` and `import.sh`, which are the easiest way to get started.
 
-These scripts are user-friendly wrappers for the underlying Ansible playbooks (`export.yml` and `import.yml`). They automatically:
+These scripts are user-friendly wrappers for the underlying Ansible playbooks (`import_export.yml` in export or import mode). They automatically:
 1.  Read your environment's **AAP version** from `orgs_vars/<org_name>/<env_name>/vars.env`.
 2.  Read your environment's credentials from an encrypted Ansible Vault.
-3.  Validate your command-line tags against the version-specific list.
-4.  Run the correct Ansible playbook using **`ansible-navigator`**.
-5.  Use a pre-built **Execution Environment (EE)** to ensure all the right Ansible collections and dependencies are present.
+3.  Validate your command-line tags against the version-specific list in `script_vars/<version>/`.
+4.  Run the playbook using **`ansible-playbook`** by default (with versioned collections from `collections/<version>/`), or **`ansible-navigator`** with an Execution Environment if you pass `--navigator`.
 
 You don't need to be an Ansible expert to use them, but you *do* need the prerequisite tools installed.
 
 ## 🛠️ Prerequisites
 
-Before you begin, you **must** have the following tools installed on your local machine:
+Before you begin, you **must** have the following installed on your local machine:
 
-1.  **`ansible-navigator`**: The tool used to run the Ansible playbooks inside their execution environment.
-2.  **`Bash 4.3+`**: Required for advanced script features (associative arrays and namerefs).
-3.  **Podman** or **Docker**: `ansible-navigator` needs a container runtime to pull and run the Execution Environment.
-4.  **Git**: To clone this repository.
+1.  **Ansible** (for **`ansible-playbook`**, the default): Used with versioned collections in `collections/<version>/`. Install collections per AAP version with `./install_collections.sh` (see [Tips](#-tips-and-advanced-usage)).
+2.  **`Bash 4.3+`**: Required for script features (associative arrays and namerefs).
+3.  **Git**: To clone this repository.
+
+**Optional (for Execution Environment runs):** If you prefer to run with **`ansible-navigator`** and an EE, you need **`ansible-navigator`** and **Podman** or **Docker**. You must **create the Execution Environments yourself** (e.g. build or pull images that include the required collections and dependencies). You must also **update the config** so the scripts use your EE: set the `execution_environment` variable in the version-specific script vars file (see [Using ansible-navigator (EE)](#using-ansible-navigator-ee) below). Then pass `--navigator` to `export.sh` or `import.sh`.
 
 ---
 
@@ -123,10 +125,12 @@ chmod +x export.sh import.sh
 
 This command reads from your AAP instance and saves the files locally. **Note that you no longer need to provide the version number.**
 
-* **Command:** `./export.sh <org_name> <environment_name> [options]`
+* **Command:** `./export.sh <org_name> <environment_name> [--playbook|--navigator] [options]`
 * **Arguments:**
     * `<org_name>`: The name of your organization (e.g., `OCP0Lab`, `TAMLab`, `HomeLab`).
-    * `<environment_name>`: The name of your config directory (e.g., `my_prod`).
+    * `<environment_name>`: The name of your config directory (e.g., `my_prod`, `AAP25`).
+    * `--playbook`: Use `ansible-playbook` with versioned collections (default if `CASC_USE_PLAYBOOK` is set).
+    * `--navigator`: Use `ansible-navigator` with the Execution Environment.
     * `[options]`:
         * `-a` or `--all`: Export *all* supported configurations.
         * `-t "tag1,tag2"`: Export *only* the specific items you list.
@@ -138,8 +142,8 @@ This command reads from your AAP instance and saves the files locally. **Note th
 * **What this does:**
     1.  Reads `orgs_vars/OCP0Lab/my_prod/vars.env` to find this env is for AAP 2.6 (or whichever version you selected).
     2.  Reads connection details from your encrypted `orgs_vars/OCP0Lab/my_prod/vault.yml`.
-    3.  Connects to your AAP 2.6 instance.
-    4.  Saves the resulting YAML files into a new, timestamped directory like `orgs_vars/OCP0Lab/my_prod/exports/my_prod_export_20251028_193000/`.
+    3.  Connects to your AAP instance.
+    4.  Saves the result into a new, timestamped directory: `orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_YYYYMMDD_HHMMSS/`. Each export contains **`flat_version/`** (single-file-per-resource YAML) and **`filetree_version/`** (hierarchical layout for import).
 
 ---
 
@@ -147,20 +151,25 @@ This command reads from your AAP instance and saves the files locally. **Note th
 
 This command reads from your local files and configures your AAP instance.
 
-* **Command:** `./import.sh <org_name> <environment_name> [options]`
+* **Command:** `./import.sh <org_name> <environment_name> [--playbook|--navigator] [options]`
 * **Arguments:**
-    * `<org_name>`: The name of your organization (e.g., `OCP0Lab`, `TAMLab`, `HomeLab`).
-    * `<environment_name>`: The name of your config directory (e.g., `my_prod`).
+    * `<org_name>` and `<environment_name>`: Same as export.
+    * `--playbook` / `--navigator`: Same as export (default is playbook with versioned collections).
     * `[options]`:
-        * `-a` or `--all`: Import *all* configurations from the `imports` directory and `common` directory.
+        * `-a` or `--all`: Import *all* configurations from the environment's `imports` directory and the organization's `common` directory.
         * `-t "tag1,tag2"`: Import *only* the specific items you list.
 
 **Example: Import only Projects**
 
-1.  **First, copy your config files:** Before you can import, you must place your configuration files into the `imports` directory for your environment.
+1.  **First, copy your config files:** Before you can import, place your configuration files into the `imports` directory for your environment. **Which export folder to copy from** depends on the **`flatten_output`** setting in your environment's **`vars.yml`** (e.g. `orgs_vars/OCP0Lab/my_prod/vars.yml`):
+    * **`flatten_output: true`** → Copy from the export's **`flat_version/`** folder. When importing with flat layout, the import process reads **every YAML file it finds recursively** under `imports` (and `common`). So you can put YAML files in the root of `imports/` or in any subfolders—both work.
+    * **`flatten_output: false`** → Copy from the export's **`filetree_version/`** folder. The import expects the filetree layout (e.g. `controller_projects.d/`, `gateway_teams.d/`, etc.); keep that structure when copying.
     ```bash
-    # (Assuming you already exported)
-    # cp orgs_vars/OCP0Lab/my_prod/exports/my_prod_export.../controller_projects.yml orgs_vars/OCP0Lab/my_prod/imports/
+    # Example (flatten_output: true): copy from flat_version
+    # cp orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_*/flat_version/controller_projects.yml orgs_vars/OCP0Lab/my_prod/imports/
+
+    # Example (flatten_output: false): copy the filetree_version layout
+    # cp -r orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_*/filetree_version/* orgs_vars/OCP0Lab/my_prod/imports/
     ```
 
 2.  **Run the import script:**
@@ -187,6 +196,33 @@ This command reads from your local files and configures your AAP instance.
 
 ## 💡 Tips and Advanced Usage
 
+### ansible-playbook vs ansible-navigator
+
+By default, the scripts use **`ansible-playbook`** with versioned collections from `collections/<version>/` (e.g. `collections/2.5/`). You must install those collections first:
+
+```bash
+./install_collections.sh
+```
+
+To use **`ansible-navigator`** with an Execution Environment instead (no local collections), pass `--navigator`:
+
+```bash
+./export.sh OCP0Lab my_prod --navigator -t "controller_projects"
+```
+
+#### Using ansible-navigator (EE)
+
+If you use **`--navigator`**, you are responsible for:
+
+1. **Creating the Execution Environments ahead of time.** The scripts do not build or pull an EE for you. You must build (or otherwise obtain) container images that include the required Ansible collections and dependencies for each AAP version you use (e.g. `infra.aap_configuration`, `infra.aap_configuration_extended`, platform collections).
+
+2. **Pointing the scripts at your EE image.** Set the **`execution_environment`** variable in the **script vars** file for each AAP version:
+   - **File:** `script_vars/<version>/vars.env` (e.g. `script_vars/2.5/vars.env`, `script_vars/2.6/vars.env`).
+   - **Variable:** `execution_environment="<your-ee-image>"` (e.g. a Quay or registry URL, or a local image name).
+   - The scripts pass this value to `ansible-navigator` as `--execution-environment-image`. If `execution_environment` is missing when you run with `--navigator`, the scripts will error.
+
+You can set the environment variable **`CASC_USE_PLAYBOOK`** to `1`, `true`, or `yes` to prefer playbook; leave it unset or set to something else to prefer navigator. The `--playbook` and `--navigator` flags override the environment variable.
+
 ### Avoid Typing Your Vault Password
 By default, these scripts will securely prompt you for your vault password every time they run.
 
@@ -211,6 +247,20 @@ If you are in a trusted environment and want to avoid this, you can tell Ansible
         ```
 
 4.  **Important:** If you create this `ansible.cfg` file, make sure to add it to your `.gitignore` file so you don't accidentally commit it!
+
+## 📚 Documentation
+
+Additional guides and references in the **`docs/`** directory:
+
+* **[Migration guide: Controller to AAP](docs/MIGRATION_GUIDE_CONTROLLER_TO_AAP.md)** — Migrating from `infra.controller_configuration` (AAP 2.4 and earlier) to `infra.aap_configuration` / `infra.aap_configuration_extended` (AAP 2.5+).
+
+## 🤝 Contributing
+
+We welcome feedback and contributions.
+
+* **Feature requests, bugs, documentation:** Open a [GitHub Issue](https://github.com/lennysh/aap-casc-demo/issues) and choose the appropriate template (Feature request, Bug report, or Documentation).
+* **Questions, usage help, or general discussion:** Use [GitHub Discussions](https://github.com/lennysh/aap-casc-demo/discussions).
+* **Code or doc changes:** Open a Pull Request. The repo uses a [pull request template](.github/PULL_REQUEST_TEMPLATE.md) to capture description, type of change, and a short checklist.
 
 ## 📦 Supported AAP Versions
 
