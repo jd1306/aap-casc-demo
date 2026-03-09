@@ -1,4 +1,4 @@
-lennysh# AAP Configuration as Code Demo
+# AAP Configuration as Code Demo
 
 [![GitHub last commit](https://img.shields.io/github/last-commit/lennysh/aap-casc-demo.svg)](https://github.com/lennysh/aap-casc-demo/commits/main) [![GitHub license](https://img.shields.io/github/license/lennysh/aap-casc-demo.svg)](https://github.com/lennysh/aap-casc-demo/blob/main/LICENSE) [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/lennysh/aap-casc-demo/pulls) ![GitHub contributors](https://img.shields.io/github/contributors/lennysh/aap-casc-demo) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/lennysh/aap-casc-demo) ![GitHub Discussions](https://img.shields.io/github/discussions/lennysh/aap-casc-demo)
 
