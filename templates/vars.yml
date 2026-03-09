@@ -1,12 +1,15 @@
 ---
-# Exports/Imports objects as flat as possible (no sub-folders, "like" objects in same file)
+# Filter the AAP organization to export.  If not set, all organizations the provided credentials have access to will be exported.
+# Example: organization_filter: 'Default'
+# organization_filter: ''
+
+# Imports objects as flat as possible (no sub-folders, "like" objects in same file)
+# If set to true, the import process will read every YAML file it finds recursively under the import directory (and common directory).
+# If set to false, the import process will read the filetree layout (e.g. controller_projects.d/gateway_teams.d/etc.).
 flatten_output: false
 
 # Removes the internal ID # from the filenames when 'flatten_output' is false (or undefined)
 omit_id: true
-
-# Default organization name override (for when the objects are global)
-organization: ''
 
 # Replaces '$encrypted$' with a custom variable name, thus requiring
 # the var to be defined before it can be imported back in
