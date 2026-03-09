@@ -262,7 +262,7 @@ We welcome feedback and contributions.
 
 * **Feature requests, bugs, documentation:** Open a [GitHub Issue](https://github.com/lennysh/aap-casc-demo/issues) and choose the appropriate template (Feature request, Bug report, or Documentation).
 * **Questions, usage help, or general discussion:** Use [GitHub Discussions](https://github.com/lennysh/aap-casc-demo/discussions).
-* **Chat:** Join the [Matrix channel](https://matrix.to/#/!xDnPWJwDoYgRDsypmy:matrix.org?via=matrix.org) for real-time conversation.
+* **Chat:** Join the [Matrix channel](https://matrix.to/#/#lennysh-aap-casc-demo:matrix.org) for real-time conversation.
 * **Code or doc changes:** Open a Pull Request. The repo uses a [pull request template](.github/PULL_REQUEST_TEMPLATE.md) to capture description, type of change, and a short checklist.
 
 ## 📦 Supported AAP Versions
