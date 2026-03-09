@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: GitHub Discussions
+  - name: Ask a question or start a general discussion
     url: https://github.com/lennysh/aap-casc-demo/discussions
-    about: Discuss the project with the community
-  - name: GitHub Pull Requests
+    about: For general questions, usage help, or discussions. For bugs use Bug report; for new ideas use Feature request.
+  - name: Meant to be a Pull Request?
     url: https://github.com/lennysh/aap-casc-demo/pulls
     about: Create a new pull request to contribute to the project
