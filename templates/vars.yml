@@ -4,7 +4,7 @@
 # organization_filter: ''
 
 # Imports objects as flat as possible (no sub-folders, "like" objects in same file)
-# If set to true, the import process will read every YAML file it finds recursively under the import directory (and common directory).
+# If set to true, the import process will read every YAML file it finds recursively under the import directory (and common directory if enabled -- see 'import_common').
 # If set to false, the import process will read the filetree layout (e.g. controller_projects.d/gateway_teams.d/etc.).
 flatten_output: false
 
