@@ -21,6 +21,7 @@
     * [Exporting Configuration](#exporting-configuration)
     * [Importing Configuration](#importing-configuration)
 * 💡 [Tips and Advanced Usage](#-tips-and-advanced-usage)
+    * [Environment vars.yml](#environment-varsyml)
 * 📚 [Documentation](#-documentation)
 * 🤝 [Contributing](#-contributing)
 * 📦 [Supported AAP Versions](#-supported-aap-versions)
@@ -103,6 +104,7 @@ Before you begin, you **must** have the following installed on your local machin
     * Create the full directory structure: `orgs_vars/OCP0Lab/my_prod/imports` and `orgs_vars/OCP0Lab/my_prod/exports`.
     * Create the common directory: `orgs_vars/OCP0Lab/common/` for shared configurations.
     * Save your version choice to `orgs_vars/OCP0Lab/my_prod/vars.env`.
+    * Copy `templates/vars.yml` to `orgs_vars/OCP0Lab/my_prod/vars.yml` (export/import behavior options; see [Environment vars.yml](#environment-varsyml) below).
     * Copy the `templates/vault.yml` to `orgs_vars/OCP0Lab/my_prod/vault.yml`.
     * Encrypt the new `vault.yml` using `ansible-vault`. (It will ask you to create a new vault password.)
     * Open the new `vault.yml` in your editor so you can add your AAP hostname and credentials.
@@ -145,7 +147,7 @@ This command reads from your AAP instance and saves the files locally. **Note th
     1.  Reads `orgs_vars/OCP0Lab/my_prod/vars.env` to find this env is for AAP 2.6 (or whichever version you selected).
     2.  Reads connection details from your encrypted `orgs_vars/OCP0Lab/my_prod/vault.yml`.
     3.  Connects to your AAP instance.
-    4.  Saves the result into a new, timestamped directory: `orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_YYYYMMDD_HHMMSS/`. Each export contains **`flat_version/`** (single-file-per-resource YAML) and **`filetree_version/`** (hierarchical layout for import).
+    4.  Saves the result into a new, timestamped directory: `orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_YYYYMMDD_HHMMSS/`. **Export always produces both** **`flat_version/`** (single-file-per-resource YAML) and **`filetree_version/`** (hierarchical layout). Which one you copy into `imports` for a later import is determined by the **`flatten_output`** setting in `vars.yml` (see [Importing](#importing-configuration) and [Environment vars.yml](#environment-varsyml)).
 
 ---
 
@@ -163,8 +165,8 @@ This command reads from your local files and configures your AAP instance.
 
 **Example: Import only Projects**
 
-1.  **First, copy your config files:** Before you can import, place your configuration files into the `imports` directory for your environment. **Which export folder to copy from** depends on the **`flatten_output`** setting in your environment's **`vars.yml`** (e.g. `orgs_vars/OCP0Lab/my_prod/vars.yml`):
-    * **`flatten_output: true`** → Copy from the export's **`flat_version/`** folder. When importing with flat layout, the import process reads **every YAML file it finds recursively** under `imports` (and `common`). So you can put YAML files in the root of `imports/` or in any subfolders—both work.
+1.  **First, copy your config files:** Before you can import, place your configuration files into the `imports` directory for your environment. Export always produces both `flat_version/` and `filetree_version/`. **Which of those two folders you copy from** depends on the **`flatten_output`** setting in your environment's **`vars.yml`** (e.g. `orgs_vars/OCP0Lab/my_prod/vars.yml`):
+    * **`flatten_output: true`** → Copy from the export's **`flat_version/`** folder. When importing with flat layout, the import process reads **every YAML file it finds recursively** under `imports` (and under `common` when `import_common` is true). You can put YAML files in the root of `imports/` or in any subfolders—both work.
     * **`flatten_output: false`** → Copy from the export's **`filetree_version/`** folder. The import expects the filetree layout (e.g. `controller_projects.d/`, `gateway_teams.d/`, etc.); keep that structure when copying.
     ```bash
     # Example (flatten_output: true): copy from flat_version
@@ -249,6 +251,18 @@ If you are in a trusted environment and want to avoid this, you can tell Ansible
         ```
 
 4.  **Important:** If you create this `ansible.cfg` file, make sure to add it to your `.gitignore` file so you don't accidentally commit it!
+
+### Environment vars.yml
+
+Each environment has a **`vars.yml`** (e.g. `orgs_vars/OCP0Lab/my_prod/vars.yml`) created from `templates/vars.yml`. It controls import behavior and optional export filters. **Export always produces both** `flat_version/` and `filetree_version/`; `flatten_output` only affects which layout **import** expects. All options in the template are:
+
+| Option | Description |
+|--------|--------------|
+| **`organization_filter`** | (Optional.) Limit export to a single AAP organization (e.g. `'Default'`). If unset or empty, all organizations your credentials can access are exported. |
+| **`flatten_output`** | **Import only.** `true`: import uses flat layout and reads every YAML file recursively under `imports` (and `common` when `import_common` is true). `false`: import expects the filetree layout (e.g. `controller_projects.d/`, `gateway_teams.d/`). Export always writes both layouts. |
+| **`secrets_as_variables`** | When `true`, replaces `$encrypted$` in exported data with a variable name so you can define the secret (e.g. in Vault) before re-importing. |
+| **`secrets_as_variables_prefix`** | Prefix for those variable names (default `"vault"`). |
+| **`import_common`** | When `true`, import also reads config from `orgs_vars/<org_name>/common/`. Set to `false` to use only the environment's `imports` folder. |
 
 ## 📚 Documentation
 
