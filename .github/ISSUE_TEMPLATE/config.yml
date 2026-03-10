@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Chat on Matrix!
-    url: https://matrix.to/#/!xDnPWJwDoYgRDsypmy:matrix.org?via=matrix.org
+    url: https://matrix.to/#/#lennysh-aap-casc-demo:matrix.org
     about: For general questions, usage help, or discussions. For bugs use Bug report; for new ideas use Feature request.
   - name: Looking for Pull Requests?
     url: https://github.com/lennysh/aap-casc-demo/pulls
