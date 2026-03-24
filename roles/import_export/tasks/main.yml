@@ -10,26 +10,29 @@
   tags:
     - always
 
-- name: "{{ __task_name }}"
-  vars:
-    __task_name: "AAP {{ casc_aap_version }} | Authentication | Setup"
-  ansible.builtin.include_tasks: "{{ __auth_mode }}/auth_setup.yml"
-  when: vault_aap_token is not defined
-  tags:
-    - always
+- name: Block to handle Auth
+  block:
+    - name: "{{ __task_name }}"
+      vars:
+        __task_name: "AAP {{ casc_aap_version }} | Authentication | Setup"
+      ansible.builtin.include_tasks: "{{ __auth_mode }}/auth_setup.yml"
+      when: vault_aap_token is not defined
+      tags:
+        - always
 
-- name: "{{ __task_name }}"
-  vars:
-    __task_name: "AAP {{ casc_aap_version }} | {{ import_export_mode | trim | capitalize }} Mode"
-  ansible.builtin.include_tasks: "{{ __auth_mode }}/{{ import_export_mode | trim | lower }}.yml"
-  tags:
-    - always
+    - name: "{{ __task_name }}"
+      vars:
+        __task_name: "AAP {{ casc_aap_version }} | {{ import_export_mode | trim | capitalize }} Mode"
+      ansible.builtin.include_tasks: "{{ __auth_mode }}/{{ import_export_mode | trim | lower }}.yml"
+      tags:
+        - always
 
-- name: "{{ __task_name }}"
-  vars:
-    __task_name: "AAP {{ casc_aap_version }} | Authentication | Clear"
-  ansible.builtin.include_tasks: "{{ __auth_mode }}/auth_clear.yml"
-  when: __clear_token | default(false)
-  tags:
-    - always
+  always:
+    - name: "{{ __task_name }}"
+      vars:
+        __task_name: "AAP {{ casc_aap_version }} | Authentication | Clear"
+      ansible.builtin.include_tasks: "{{ __auth_mode }}/auth_clear.yml"
+      when: __clear_token | default(false)
+      tags:
+        - always
 ...
