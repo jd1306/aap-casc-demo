@@ -33,6 +33,7 @@
   when:
     - primary_rule.type == 'dict'
     - target_var_value is not none
+    - target_var_value | length > 0
 
 # Branch 2: Handle Single-Item-Lists (like controller_settings)
 - name: "Process 'single_list_item' variable"
@@ -104,6 +105,7 @@
   loop: "{{ __files_to_create }}"
   loop_control:
     loop_var: item
+    label: "{{ item.filename }}"
   run_once: true
   delegate_to: localhost
   when:
