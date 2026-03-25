@@ -12,7 +12,7 @@
 
 - name: "Initialize file list for this variable"
   ansible.builtin.set_fact:
-    files_to_create: []
+    __files_to_create: []
   run_once: true
   delegate_to: localhost
 
@@ -26,9 +26,9 @@
 # Branch 1: Handle Dictionaries (like gateway_settings)
 - name: "Process 'dict' variable"
   ansible.builtin.set_fact:
-    files_to_create:
-      - subfolder: "{{ primary_rule.subfolder | default('') }}/"
-        filename: "{{ primary_rule.filename }}"
+    __files_to_create:
+      - subfolder: "{{ primary_rule.subfolder | default('') }}"
+        filename: "{{ primary_rule.filename | regex_replace('[^a-zA-Z0-9_.-]', '_') | regex_replace('_+', '_') | regex_replace('^_+|_+$', '') | trim }}"
         content: "{{ {target_var_name: target_var_value} | to_nice_yaml(indent=2, sort_keys=False, explicit_start=True) }}"
   when:
     - primary_rule.type == 'dict'
@@ -37,9 +37,9 @@
 # Branch 2: Handle Single-Item-Lists (like controller_settings)
 - name: "Process 'single_list_item' variable"
   ansible.builtin.set_fact:
-    files_to_create:
-      - subfolder: "{{ primary_rule.subfolder | default('') }}/"
-        filename: "{{ primary_rule.filename }}"
+    __files_to_create:
+      - subfolder: "{{ primary_rule.subfolder | default('') }}"
+        filename: "{{ primary_rule.filename | regex_replace('[^a-zA-Z0-9_.-]', '_') | regex_replace('_+', '_') | regex_replace('^_+|_+$', '') | trim }}"
         content: "{{ {target_var_name: target_var_value} | to_nice_yaml(indent=2, sort_keys=False, explicit_start=True) }}"
   when:
     - primary_rule.type == 'single_list_item'
@@ -67,43 +67,46 @@
   delegate_to: localhost
   when:
     # - target_var_value is not none
-    - files_to_create is defined
-    - files_to_create | length > 0
+    - __files_to_create is defined
+    - __files_to_create | length > 0
 
-- name: "Ensure subfolder directories exist"
-  ansible.builtin.file:
-    path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ item.subfolder }}"
-    state: directory
-    mode: '0755'
-  loop: "{{ files_to_create }}"
-  loop_control:
-    loop_var: item
-    label: "Ensure subfolder directory exists for {{ item.subfolder }}"
+- name: "Get unique list of subfolders"
+  ansible.builtin.set_fact:
+    __unique_subfolders: "{{ __files_to_create | map(attribute='subfolder') | list | unique }}"
   run_once: true
   delegate_to: localhost
   when:
-    - files_to_create is defined
-    - files_to_create | length > 0
+    - __files_to_create is defined
+    - __files_to_create | length > 0
+
+- name: "Ensure subfolder directories exist"
+  ansible.builtin.file:
+    path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ __unique_subfolders }}"
+  loop_control:
+    loop_var: item
+    label: "Ensure subfolder directory exists for {{ item }}"
+  run_once: true
+  delegate_to: localhost
+  when:
+    - __unique_subfolders is defined
+    - __unique_subfolders | length > 0
+    - item | length > 0
 
 # This task is the single point of file creation
 - name: "📝 Create all files for '{{ target_var_name }}'"
   ansible.builtin.copy:
     content: "{{ item.content }}"
-    dest: >-
-      {{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ item.subfolder }}
-      {{
-        item.filename
-        | regex_replace('[^a-zA-Z0-9_.-]', '_')
-        | regex_replace('_+', '_')
-        | regex_replace('^_+|_+$', '')
-      }}
+    dest: "{{ flat_to_filetree_output_path | trim }}/{{ target_folder_name | trim }}/{{ item.subfolder | trim }}/{{ item.filename }}"
     mode: '0644'
-  loop: "{{ files_to_create }}"
+  loop: "{{ __files_to_create }}"
   loop_control:
     loop_var: item
   run_once: true
   delegate_to: localhost
   when:
-    - files_to_create is defined
-    - files_to_create | length > 0
+    - __files_to_create is defined
+    - __files_to_create | length > 0
 ...
