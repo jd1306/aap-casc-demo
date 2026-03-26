@@ -98,13 +98,6 @@
     - item is not none
     - item | length > 0
 
-- name: "DEBUG - __files_to_create"
-  ansible.builtin.debug:
-    msg: "__files_to_create: {{ __files_to_create }}"
-  when:
-    - __files_to_create is defined
-    - __files_to_create | length > 0
-
 # This task is the single point of file creation
 - name: "📝 Create all files for '{{ target_var_name }}'"
   ansible.builtin.copy:
