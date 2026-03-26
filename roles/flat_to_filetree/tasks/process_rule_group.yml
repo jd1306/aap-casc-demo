@@ -9,10 +9,21 @@
     filtered_list: "{{ target_var_value | selectattr(rule.key, 'defined') | list }}"
 
 # Group the list *once* and save it as a fact.
-# Ansible will convert the groupby object into a list of lists.
+# Do not use Jinja groupby() here: its result (even in loop:) is GroupTuple, which Ansible warns on.
+# Equivalent: unique values of rule.key, sorted like groupby, then selectattr per key.
+# Reset each time this file runs (loop over rules) so we do not append to a previous rule's groups.
+- name: "Reset grouped list for this rule"
+  ansible.builtin.set_fact:
+    grouped_list_of_lists: []
+  when:
+    - filtered_list | length > 0
+
 - name: "Group items and store as list of lists"
   ansible.builtin.set_fact:
-    grouped_list_of_lists: "{{ (filtered_list | list) | groupby(rule.key) | list }}"
+    grouped_list_of_lists: "{{ grouped_list_of_lists + [[item, filtered_list | selectattr(rule.key, 'equalto', item) | list]] }}"
+  loop: "{{ filtered_list | map(attribute=rule.key) | list | unique | sort }}"
+  loop_control:
+    loop_var: item
   when:
     - filtered_list | length > 0
   changed_when: false # This is just a fact, not a change
