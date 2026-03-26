@@ -3,33 +3,13 @@
 # It expects 'rule' (from the loop) and all 'target_*' vars to be set.
 # Its only job is to APPEND to the '__files_to_create' fact.
 
-# 1. Filter the main list to *only* items that have our rule's key
+# Filter the main list to *only* items that have our rule's key
 - name: "Filter list for items matching rule key '{{ rule.key }}'"
   ansible.builtin.set_fact:
     filtered_list: "{{ target_var_value | selectattr(rule.key, 'defined') | list }}"
 
-# 2. Define the subfolder path
-- name: "Set subfolder path for '{{ rule.key }}'"
-  ansible.builtin.set_fact:
-    current_subfolder: >-
-      {%- if rule.subfolder is defined and rule.subfolder | length > 0 -%}
-      {{ rule.subfolder }}/{%- else -%}
-      {%- endif -%}
-
-# 3. Ensure this subfolder exists
-# - name: "Ensure sub-directory exists for {{ rule.key }}"
-#   ansible.builtin.file:
-#     path: "{{ flat_to_filetree_output_path }}/{{ target_folder_name }}/{{ current_subfolder }}"
-#     state: directory
-#     mode: '0755'
-#   run_once: true
-#   delegate_to: localhost
-#   when:
-#     - filtered_list | length > 0
-#     - current_subfolder | length > 0
-
-# 4. Group the list *once* and save it as a fact.
-#    Ansible will convert the groupby object into a list of lists.
+# Group the list *once* and save it as a fact.
+# Ansible will convert the groupby object into a list of lists.
 - name: "Group items and store as list of lists"
   ansible.builtin.set_fact:
     grouped_list_of_lists: "{{ (filtered_list | list) | groupby(rule.key) | list }}"
@@ -37,7 +17,7 @@
     - filtered_list | length > 0
   changed_when: false # This is just a fact, not a change
 
-# 5. Build the final list of files to create
+# Build the final list of files to create
 - name: "Append file objects for rule '{{ rule.key }}'"
   ansible.builtin.set_fact:
     # Append the new 'file_item' object to the '__files_to_create' list
@@ -58,7 +38,7 @@
     content_dict: "{{ {target_var_name: item_list} }}"
 
     file_item:
-      subfolder: "{{ current_subfolder }}"
+      subfolder: "{{ rule.subfolder }}"
       filename: "{{ filename_to_use }}"
       content: "{{ content_dict | to_nice_yaml(indent=2, sort_keys=False, explicit_start=True) }}"
   when:

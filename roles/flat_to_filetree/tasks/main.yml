@@ -1,6 +1,5 @@
 ---
 # tasks file for flat_to_filetree
-
 - name: 🚧 Validate input variables
   ansible.builtin.assert:
     that:
