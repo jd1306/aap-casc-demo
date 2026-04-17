@@ -138,6 +138,7 @@ This command reads from your AAP instance and saves the files locally. **Note th
     * `[options]`:
         * `-a` or `--all`: Export *all* supported configurations.
         * `-t "tag1,tag2"`: Export *only* the specific items you list.
+        * `-o <dir>` or `--export-path <dir>`: Write the export under this directory instead of the default timestamped folder under `orgs_vars/<org_name>/<environment_name>/exports/`.
 
 **Example: Export only Projects and Credentials**
 ```bash
@@ -147,7 +148,7 @@ This command reads from your AAP instance and saves the files locally. **Note th
     1.  Reads `orgs_vars/OCP0Lab/my_prod/vars.env` to find this env is for AAP 2.6 (or whichever version you selected).
     2.  Reads connection details from your encrypted `orgs_vars/OCP0Lab/my_prod/vault.yml`.
     3.  Connects to your AAP instance.
-    4.  Saves the result into a new, timestamped directory: `orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_YYYYMMDD_HHMMSS/`. **Export always produces both** **`flat_version/`** (single-file-per-resource YAML) and **`filetree_version/`** (hierarchical layout). Which one you copy into `imports` for a later import is determined by the **`flatten_output`** setting in `vars.yml` (see [Importing](#importing-configuration) and [Environment vars.yml](#environment-varsyml)).
+    4.  Saves the result into a new directory. By default this is timestamped under `orgs_vars/OCP0Lab/my_prod/exports/ocp0lab_my_prod_export_YYYYMMDD_HHMMSS/`; use `-o` / `--export-path` to choose a different destination. **Export always produces both** **`flat_version/`** (single-file-per-resource YAML) and **`filetree_version/`** (hierarchical layout). Which one you copy into `imports` for a later import is determined by the **`flatten_output`** setting in `vars.yml` (see [Importing](#importing-configuration) and [Environment vars.yml](#environment-varsyml)).
 
 ---
 

@@ -78,7 +78,7 @@ for ver in "${versions[@]}"; do
     # Restrict galaxy to this path only so it doesn't treat collections in
     # ~/.ansible/collections or /usr/share/ansible/collections as "already
     # installed" and skip them. Each versioned dir must be self-contained.
-    ANSIBLE_COLLECTIONS_PATHS="$install_dir" ansible-galaxy collection install -r "$req_file" -p "$install_dir" --force
+    ANSIBLE_COLLECTIONS_PATH="$install_dir" ansible-galaxy collection install -r "$req_file" -p "$install_dir" --force
 done
 
 echo "Done."

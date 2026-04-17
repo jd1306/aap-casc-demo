@@ -12,9 +12,10 @@ script_vars_dir="$parent_dir/script_vars"
 usage() {
     local org_context=$1
     local env_context=$2
-    echo "Usage: $0 <org> <env> [--playbook|--navigator] [-a|--all] [-t|--tags <tags>]"
+    echo "Usage: $0 <org> <env> [--playbook|--navigator] [-o|--export-path <dir>] [-a|--all] [-t|--tags <tags>]"
     echo "  --playbook    Use ansible-playbook (versioned collections). Overrides CASC_USE_PLAYBOOK."
     echo "  --navigator   Use ansible-navigator with EE (default). Overrides CASC_USE_PLAYBOOK."
+    echo "  -o, --export-path <dir>  Write export to this directory instead of orgs_vars/.../exports/<timestamp>."
     echo "  Default: use CASC_USE_PLAYBOOK env (1/true/yes = playbook); else navigator."
     echo ""
 
@@ -74,15 +75,31 @@ case "${CASC_USE_PLAYBOOK:-1}" in
     1|true|yes|TRUE|YES) USE_ANSIBLE_PLAYBOOK=true ;;
     *)                   USE_ANSIBLE_PLAYBOOK=false ;;
 esac
+CUSTOM_EXPORT_PATH=""
 filtered_args=()
-for arg in "$@"; do
-    if [[ "$arg" == "--playbook" ]]; then
-        USE_ANSIBLE_PLAYBOOK=true
-    elif [[ "$arg" == "--navigator" ]]; then
-        USE_ANSIBLE_PLAYBOOK=false
-    else
-        filtered_args+=("$arg")
-    fi
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --playbook)
+            USE_ANSIBLE_PLAYBOOK=true
+            shift
+            ;;
+        --navigator)
+            USE_ANSIBLE_PLAYBOOK=false
+            shift
+            ;;
+        -o|--export-path)
+            if [[ -z "${2:-}" ]] || [[ "$2" == -* ]]; then
+                echo "Error: $1 requires a directory path argument."
+                exit 1
+            fi
+            CUSTOM_EXPORT_PATH=$2
+            shift 2
+            ;;
+        *)
+            filtered_args+=("$1")
+            shift
+            ;;
+    esac
 done
 
 # --- Initialize and Validate ---
@@ -91,14 +108,19 @@ done
 initialize_and_validate "export" "${filtered_args[@]}"
 
 # --- Build and Execute Command ---
-dest_folder="${org,,}_${env,,}_export_$(date +%Y%m%d_%H%M%S)"
+if [[ -n "${CUSTOM_EXPORT_PATH:-}" ]]; then
+    export_dest=$CUSTOM_EXPORT_PATH
+else
+    dest_folder="${org,,}_${env,,}_export_$(date +%Y%m%d_%H%M%S)"
+    export_dest="$orgs_vars_dir/$org/$env/exports/$dest_folder"
+fi
 cd "$parent_dir" || { echo "Failed to change directory to $parent_dir"; exit 1; }
 
 playbook_args=(
     "import_export.yml"
     "-e" "import_export_mode=export"
     "-e" "casc_aap_version=$CASC_AAP_VERSION" # Note: $CASC_AAP_VERSION is set in common_functions.sh
-    "-e" "{export_path: $orgs_vars_dir/$org/$env/exports/$dest_folder}"
+    "-e" "export_path=$export_dest"
     "-e" "@$orgs_vars_dir/$org/$env/vault.yml"
     "-e" "@$orgs_vars_dir/$org/$env/vars.yml"
     "-e" "flatten_output=true"
