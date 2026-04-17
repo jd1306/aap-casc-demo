@@ -24,6 +24,7 @@
     * [Environment vars.yml](#environment-varsyml)
 * 📚 [Documentation](#-documentation)
 * 🤝 [Contributing](#-contributing)
+* 🙏 [Thank You](#-thank-you)
 * 📦 [Supported AAP Versions](#-supported-aap-versions)
 * 📜 [License](#-license)
 
@@ -278,6 +279,12 @@ We welcome feedback and contributions.
 * **Feature requests, bugs, documentation:** Open a [GitHub Issue](https://github.com/lennysh/aap-casc-demo/issues) and choose the appropriate template (Feature request, Bug report, or Documentation).
 * **Questions, usage help, or chat:** Join the [Matrix channel](https://matrix.to/#/#lennysh-aap-casc-demo:matrix.org).
 * **Code or doc changes:** Open a Pull Request. The repo uses a [pull request template](.github/PULL_REQUEST_TEMPLATE.md) to capture description, type of change, and a short checklist.
+
+## 🙏 Thank You
+
+Thanks to everyone who has offered ideas and suggestions that improved this project:
+
+* **Joshua Laughlin @ Credit Acceptance** — for suggesting the `--export-path` / `-o` option on `export.sh`.
 
 ## 📦 Supported AAP Versions
 
