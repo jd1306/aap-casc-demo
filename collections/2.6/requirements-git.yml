@@ -3,12 +3,23 @@ collections:
   - name: infra.aap_configuration
     source: https://github.com/redhat-cop/infra.aap_configuration.git
     type: git
+
   - name: infra.aap_configuration_extended
     source: https://github.com/redhat-cop/aap_configuration_extended.git
     type: git
+
   - name: ansible.controller
     version: '>=4.7,<4.8'
+
   - name: ansible.platform
+    source: https://github.com/ansible/ansible.platform.git
+    type: git
+
     version: '>=2.6,<2.7'
   - name: ansible.eda
+    source: https://github.com/ansible/event-driven-ansible.git
+    type: git
+
   - name: ansible.hub
+    source: https://github.com/ansible-collections/ansible_hub.git
+    type: git
