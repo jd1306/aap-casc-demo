@@ -1,0 +1,161 @@
+---
+- name: Transform controller roles to gateway user and team assignments
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    # 1. Map old object keys to new Role Definition prefixes
+    object_prefix_map:
+      target_team: "Team"
+      target_teams: "Team"
+      inventory: "Inventory"
+      inventories: "Inventory"
+      job_template: "JobTemplate"
+      job_templates: "JobTemplate"
+      workflow: "WorkflowJobTemplate"
+      workflows: "WorkflowJobTemplate"
+      credential: "Credential"
+      credentials: "Credential"
+      organization: "Organization"
+      organizations: "Organization"
+      project: "Project"
+      projects: "Project"
+      instance_group: "InstanceGroup"
+      instance_groups: "InstanceGroup"
+      notification: "NotificationTemplate"
+      execution_environment: "ExecutionEnvironment"
+
+    # 2. Map old object keys to the strict 'type' required by team assignment_objects
+    object_type_map:
+      target_team: "teams"
+      target_teams: "teams"
+      inventory: "inventories"
+      inventories: "inventories"
+      job_template: "job_templates"
+      job_templates: "job_templates"
+      workflow: "workflows"
+      workflows: "workflows"
+      credential: "credentials"
+      credentials: "credentials"
+      organization: "organizations"
+      organizations: "organizations"
+      project: "projects"
+      projects: "projects"
+      instance_group: "instance_groups"
+      instance_groups: "instance_groups"
+
+    # 3. Map old roles to proper suffixes
+    role_suffix_map:
+      admin: "Admin"
+      member: "Member"
+      execute: "Execute"
+      adhoc: "Adhoc"
+      update: "Update"
+      use: "Use"
+      approval: "Approval"
+      auditor: "Auditor"
+      read: "Viewer"
+      project_admin: "Project Admin"
+      inventory_admin: "Inventory Admin"
+      credential_admin: "Credential Admin"
+      workflow_admin: "WorkflowJobTemplate Admin"
+      job_template_admin: "JobTemplate Admin"
+      notification_admin: "NotificationTemplate Admin"
+      execution_environment_admin: "ExecutionEnvironment Admin"
+
+  pre_tasks:
+    - name: Load controller_roles from external YAML
+      ansible.builtin.include_vars:
+        file: my_controller_roles.yml
+
+  tasks:
+    - name: Generate gateway_role_user_assignments and gateway_role_team_assignments
+      ansible.builtin.set_fact:
+        gateway_role_user_assignments: "{{ generated_assignments.users }}"
+        gateway_role_team_assignments: "{{ generated_assignments.teams }}"
+      vars:
+        generated_assignments: >-
+          {%- set user_ns = namespace(result=[]) -%}
+          {%- set team_ns = namespace(result=[]) -%}
+          {%- set known_non_objects = ['user', 'users', 'team', 'teams', 'role', 'roles', 'state', 'lookup_organization'] -%}
+
+          {%- for item in controller_roles -%}
+
+            {# Extract users, teams, and roles into unified lists #}
+            {%- set current_users = [] -%}
+            {%- if item.user is defined %}{% set _ = current_users.append(item.user) %}{% endif -%}
+            {%- if item.users is defined %}{% set current_users = current_users + item.users %}{% endif -%}
+
+            {%- set current_teams = [] -%}
+            {%- if item.team is defined %}{% set _ = current_teams.append(item.team) %}{% endif -%}
+            {%- if item.teams is defined %}{% set current_teams = current_teams + item.teams %}{% endif -%}
+
+            {%- set current_roles = [] -%}
+            {%- if item.role is defined %}{% set _ = current_roles.append(item.role) %}{% endif -%}
+            {%- if item.roles is defined %}{% set current_roles = current_roles + item.roles %}{% endif -%}
+
+            {# Identify target objects #}
+            {%- set obj_keys = item.keys() | difference(known_non_objects) -%}
+
+            {%- for obj_key in obj_keys -%}
+              {%- set prefix = object_prefix_map.get(obj_key, obj_key | title) -%}
+              {%- set target_type = object_type_map.get(obj_key, obj_key ~ 's') -%}
+
+              {# Standardize the raw object list #}
+              {%- set raw_objs = item[obj_key] -%}
+              {%- set object_ids = [raw_objs] if raw_objs is string else raw_objs -%}
+
+              {# Build the specific 'assignment_objects' dict structure for teams #}
+              {%- set team_assignment_objs = [] -%}
+              {%- for obj in object_ids -%}
+                {%- set _ = team_assignment_objs.append({'name': obj, 'type': target_type}) -%}
+              {%- endfor -%}
+
+              {# Loop through Roles to build final dictionaries #}
+              {%- for r in current_roles -%}
+                {%- set suffix = role_suffix_map.get(r, r | title) -%}
+                {%- if prefix == 'WorkflowJobTemplate' and suffix == 'Approval' %}{% set suffix = 'Approve' %}{% endif -%}
+                {%- set role_def = prefix ~ ' ' ~ suffix -%}
+
+                {# Append to User Assignments #}
+                {%- for u in current_users -%}
+                  {%- set new_user_assign = {
+                    'role_definition': role_def,
+                    'object_ids': object_ids,
+                    'user': u
+                  } -%}
+                  {%- set user_ns.result = user_ns.result + [new_user_assign] -%}
+                {%- endfor -%}
+
+                {# Append to Team Assignments #}
+                {%- for t in current_teams -%}
+                  {%- set new_team_assign = {
+                    'role_definition': role_def,
+                    'team': t,
+                    'assignment_objects': team_assignment_objs
+                  } -%}
+                  {%- set team_ns.result = team_ns.result + [new_team_assign] -%}
+                {%- endfor -%}
+
+              {%- endfor -%}
+            {%- endfor -%}
+          {%- endfor -%}
+          {{ {'users': user_ns.result, 'teams': team_ns.result} }}
+
+    - name: Write user assignments to YAML file
+      ansible.builtin.copy:
+        dest: "./my_gateway_role_user_assignments.yml"
+        mode: '0644'
+        content: |
+          ---
+          {{ {'gateway_role_user_assignments': gateway_role_user_assignments} | to_nice_yaml(indent=2) }}
+      when: gateway_role_user_assignments | length > 0
+
+    - name: Write team assignments to YAML file
+      ansible.builtin.copy:
+        dest: "./my_gateway_role_team_assignments.yml"
+        mode: '0644'
+        content: |
+          ---
+          {{ {'gateway_role_team_assignments': gateway_role_team_assignments} | to_nice_yaml(indent=2) }}
+      when: gateway_role_team_assignments | length > 0
