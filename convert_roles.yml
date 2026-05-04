@@ -1,9 +1,40 @@
 ---
+# convert_roles.yml — maps legacy controller role entries to gateway role assignment
+# structures (user and team) for use with newer AAP / gateway-style configuration.
+#
+# Inputs (import)
+# ----------------
+# convert_roles_import_path (default: my_controller_roles.yml)
+#   Path to a YAML file loaded with include_vars. The file must define a top-level
+#   list variable named controller_roles. Each element is a dict that may include:
+#   - user / users, team / teams, role / roles (strings or lists as supported by the
+#     Jinja loop below)
+#   - one or more resource keys (e.g. job_templates, inventories, workflows) whose
+#     values are object name(s) to assign; keys are normalized via object_prefix_map
+#     and object_type_map in this play.
+# Override: ansible-playbook convert_roles.yml -e convert_roles_import_path=/path/to/file.yml
+#
+# Outputs (export)
+# ----------------
+# convert_roles_export_user_path (default: ./my_gateway_role_user_assignments.yml)
+#   Written only when gateway_role_user_assignments is non-empty. Content is YAML
+#   with a single top-level key: gateway_role_user_assignments.
+#
+# convert_roles_export_team_path (default: ./my_gateway_role_team_assignments.yml)
+#   Written only when gateway_role_team_assignments is non-empty. Content is YAML
+#   with a single top-level key: gateway_role_team_assignments.
+#
+# Paths may be relative to the playbook run directory or absolute. Override exports
+# the same way as import, e.g. -e convert_roles_export_user_path=/out/users.yml
 - name: Transform controller roles to gateway user and team assignments
   hosts: localhost
   gather_facts: false
 
   vars:
+    convert_roles_import_path: my_controller_roles.yml
+    convert_roles_export_user_path: ./my_gateway_role_user_assignments.yml
+    convert_roles_export_team_path: ./my_gateway_role_team_assignments.yml
+
     # 1. Map old object keys to new Role Definition prefixes
     object_prefix_map:
       target_team: "Team"
@@ -66,7 +97,7 @@
   pre_tasks:
     - name: Load controller_roles from external YAML
       ansible.builtin.include_vars:
-        file: my_controller_roles.yml
+        file: "{{ convert_roles_import_path }}"
 
   tasks:
     - name: Generate gateway_role_user_assignments and gateway_role_team_assignments
@@ -144,7 +175,7 @@
 
     - name: Write user assignments to YAML file
       ansible.builtin.copy:
-        dest: "./my_gateway_role_user_assignments.yml"
+        dest: "{{ convert_roles_export_user_path }}"
         mode: '0644'
         content: |
           ---
@@ -153,9 +184,19 @@
 
     - name: Write team assignments to YAML file
       ansible.builtin.copy:
-        dest: "./my_gateway_role_team_assignments.yml"
+        dest: "{{ convert_roles_export_team_path }}"
         mode: '0644'
         content: |
           ---
           {{ {'gateway_role_team_assignments': gateway_role_team_assignments} | to_nice_yaml(indent=2) }}
+      when: gateway_role_team_assignments | length > 0
+
+    - name: Prettify the YAML files for user assignments
+      format_yaml:
+        path: "{{ convert_roles_export_user_path }}"
+      when: gateway_role_user_assignments | length > 0
+
+    - name: Prettify the YAML files for team assignments
+      format_yaml:
+        path: "{{ convert_roles_export_team_path }}"
       when: gateway_role_team_assignments | length > 0

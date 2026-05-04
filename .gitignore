@@ -16,4 +16,4 @@ aap_vars/
 orgs_vars/**
 !orgs_vars/.gitkeep
 
-.devcontainer
+__pycache__/
